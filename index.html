@@ -12,8 +12,10 @@
         :root {
             --neon-cyan: #06b6d4;
             --neon-blue: #3b82f6;
+            --neon-red: #ef4444;
+            --neon-green: #10b981;
             --bg-dark: #020617;
-            --glass-panel: rgba(15, 23, 42, 0.85);
+            --glass-panel: rgba(15, 23, 42, 0.90);
             --border-color: rgba(6, 182, 212, 0.3);
             --header-height: 70px;
         }
@@ -24,8 +26,8 @@
             font-family: 'Inter', sans-serif;
             background-color: var(--bg-dark);
             background-image: 
-                radial-gradient(circle at 10% 20%, rgba(6, 182, 212, 0.1) 0%, transparent 40%),
-                radial-gradient(circle at 90% 80%, rgba(59, 130, 246, 0.1) 0%, transparent 40%);
+                radial-gradient(circle at 10% 20%, rgba(6, 182, 212, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(59, 130, 246, 0.08) 0%, transparent 40%);
             color: #f1f5f9;
             min-height: 100vh;
             overflow-x: hidden;
@@ -161,7 +163,7 @@
 
         /* --- SUGGESTIONS --- */
         .mobile-suggestions {
-            background: rgba(15, 23, 42, 0.95); border: 1px solid var(--neon-cyan); border-top: none;
+            background: rgba(15, 23, 42, 0.98); border: 1px solid var(--neon-cyan); border-top: none;
             border-radius: 0 0 10px 10px; max-height: 200px; overflow-y: auto;
             display: none; margin-top: -2px; position: relative; z-index: 10;
             box-shadow: 0 10px 20px rgba(0,0,0,0.5);
@@ -188,7 +190,6 @@
         }
         .action-inner { max-width: 1600px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
         
-        /* Grid Layout for Perfect Alignment */
         .footer-totals { 
             display: grid; 
             grid-template-columns: auto auto; 
@@ -198,7 +199,7 @@
         .f-item {
             display: flex;
             flex-direction: column;
-            align-items: flex-start; /* Align text left within the item */
+            align-items: flex-start; 
         }
         .f-item small { display: block; font-size: 0.65rem; color: #64748b; font-weight: 700; letter-spacing: 1px; margin-bottom: 2px; }
         .f-item span { font-family: 'Cinzel'; font-size: 1.2rem; color: var(--neon-cyan); line-height: 1; }
@@ -207,6 +208,112 @@
         .btn { padding: 12px 25px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; font-size: 0.9rem; transition: transform 0.2s; }
         .btn:active { transform: scale(0.96); }
         .btn-submit { background: linear-gradient(135deg, var(--neon-blue), #2563eb); color: white; box-shadow: 0 0 15px rgba(59,130,246,0.4); }
+        .btn-cancel { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.5); }
+        .btn-ok { background: var(--neon-cyan); color: #020617; box-shadow: 0 0 20px rgba(6,182,212,0.4); }
+
+        /* --- MODAL SYSTEM --- */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(8px); z-index: 9999;
+            display: none; align-items: center; justify-content: center;
+            opacity: 0; transition: opacity 0.3s ease;
+        }
+        .modal-overlay.open { display: flex; opacity: 1; }
+        
+        .modal-content {
+            background: linear-gradient(145deg, rgba(15,23,42,0.98), rgba(2,6,23,0.98));
+            border: 1px solid var(--neon-cyan);
+            border-radius: 16px; width: 90%; max-width: 500px;
+            padding: 0; /* Reset padding for internal structure */
+            box-shadow: 0 0 50px rgba(6, 182, 212, 0.15);
+            transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            max-height: 85vh; overflow-y: auto; display: flex; flex-direction: column;
+        }
+        .modal-overlay.open .modal-content { transform: scale(1); }
+        
+        /* PREMIUM SUMMARY STYLES */
+        .ps-header {
+            padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.1);
+            text-align: center; background: rgba(255,255,255,0.02);
+        }
+        .ps-header h3 { font-family: 'Cinzel'; color: #fff; margin: 0; font-size: 1.4rem; }
+        .ps-header small { color: var(--neon-cyan); font-size: 0.75rem; letter-spacing: 1px; text-transform: uppercase; }
+
+        .ps-body { padding: 20px; overflow-y: auto; }
+
+        .ps-customer-card {
+            background: rgba(6, 182, 212, 0.05); border: 1px solid rgba(6, 182, 212, 0.2);
+            border-radius: 12px; padding: 15px; margin-bottom: 20px;
+            display: flex; gap: 15px; align-items: center;
+        }
+        .ps-c-icon { 
+            width: 40px; height: 40px; background: rgba(6,182,212,0.1); border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; color: var(--neon-cyan);
+        }
+        .ps-c-info h4 { color: #fff; font-size: 1rem; margin-bottom: 2px; }
+        .ps-c-info p { color: #94a3b8; font-size: 0.8rem; margin: 0; }
+
+        .ps-table-head {
+            display: grid; grid-template-columns: 2fr 1fr 1fr;
+            font-size: 0.7rem; color: #64748b; font-weight: 700; text-transform: uppercase;
+            padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 10px;
+        }
+        .ps-item {
+            display: grid; grid-template-columns: 2fr 1fr 1fr; align-items: center;
+            padding: 10px 0; border-bottom: 1px dashed rgba(255,255,255,0.1);
+        }
+        .ps-item:last-child { border-bottom: none; }
+        
+        .ps-i-desc { color: #e2e8f0; font-weight: 500; font-size: 0.9rem; line-height: 1.2; }
+        .ps-i-desc small { display: block; color: #64748b; font-size: 0.7rem; margin-top: 2px; }
+        
+        .ps-i-qty { display: flex; justify-content: center; }
+        .qty-badge {
+            background: rgba(59, 130, 246, 0.15); color: var(--neon-blue);
+            border: 1px solid rgba(59, 130, 246, 0.3); padding: 2px 10px;
+            border-radius: 20px; font-weight: 700; font-size: 0.85rem; min-width: 40px; text-align: center;
+        }
+        
+        .ps-i-total { text-align: right; color: #fff; font-weight: 600; }
+
+        .ps-footer {
+            padding: 20px; background: rgba(0,0,0,0.3); border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        .ps-total-row {
+            display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px;
+        }
+        .ps-total-row span:first-child { color: #94a3b8; font-size: 0.9rem; text-transform: uppercase; }
+        .ps-total-val { font-family: 'Cinzel'; font-size: 1.8rem; color: var(--neon-cyan); line-height: 1; text-shadow: 0 0 20px rgba(6,182,212,0.3); }
+
+        .ps-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+
+        /* Warning/Error Modal (Red) */
+        .modal-content.warning { 
+            border-color: var(--neon-red); box-shadow: 0 0 30px rgba(239, 68, 68, 0.2); 
+            text-align: center; padding: 30px;
+        }
+        .warning-icon { font-size: 3rem; color: var(--neon-red); margin-bottom: 15px; }
+        .warning-text { color: #cbd5e1; margin-bottom: 20px; }
+
+        /* Success Popup (Green) */
+        #successPopup {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.8);
+            background: #020617; border: 2px solid var(--neon-green);
+            padding: 40px; border-radius: 20px; z-index: 10000; text-align: center;
+            box-shadow: 0 0 50px rgba(16, 185, 129, 0.3);
+            display: none; opacity: 0; transition: all 0.4s ease;
+        }
+        #successPopup.show { display: block; opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        .success-icon { font-size: 4rem; color: var(--neon-green); margin-bottom: 20px; animation: bounce 1s infinite; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+        /* History Styles */
+        .history-item { 
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); 
+            padding: 15px; margin-bottom: 10px; border-radius: 8px; text-align: left;
+        }
+        .h-head { display: flex; justify-content: space-between; color: var(--neon-cyan); font-weight: bold; margin-bottom: 5px; }
+        .h-details { font-size: 0.85rem; color: #aaa; }
 
         @media (min-width: 768px) {
             .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
@@ -223,6 +330,68 @@
     <div id="loader">
         <div class="spinner"></div>
         <div style="margin-top: 20px; color: var(--neon-cyan); font-family: 'Cinzel'; font-size: 1.2rem;">LOADING PORTAL</div>
+    </div>
+
+    <div id="successPopup">
+        <div class="success-icon"><i class="fa-solid fa-circle-check"></i></div>
+        <h2 style="color:#fff; font-family:'Cinzel'; margin-bottom:10px;">ORDER CONFIRMED</h2>
+        <p style="color:#94a3b8;">Saved & Resetting...</p>
+    </div>
+
+    <div id="alertModal" class="modal-overlay">
+        <div class="modal-content warning">
+            <div class="warning-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <h2 style="color:var(--neon-red); font-family:'Cinzel'; margin-bottom:10px;">ATTENTION</h2>
+            <p id="alertMessage" class="warning-text"></p>
+            <button class="btn btn-cancel" onclick="closeModal('alertModal')" style="width:100%">OK, I UNDERSTAND</button>
+        </div>
+    </div>
+
+    <div id="summaryModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="ps-header">
+                <h3>INVOICE PREVIEW</h3>
+                <small>Verify details before saving</small>
+            </div>
+            
+            <div class="ps-body">
+                <div id="psCustomer" class="ps-customer-card">
+                    </div>
+
+                <div class="ps-table-head">
+                    <div>Description</div>
+                    <div style="text-align:center">Qty</div>
+                    <div style="text-align:right">Amount</div>
+                </div>
+
+                <div id="psItemsList">
+                    </div>
+            </div>
+
+            <div class="ps-footer">
+                <div class="ps-total-row">
+                    <span>Grand Total</span>
+                    <span class="ps-total-val" id="psTotal">0.00</span>
+                </div>
+                <div class="ps-actions">
+                    <button class="btn btn-cancel" onclick="closeModal('summaryModal')">MODIFY</button>
+                    <button class="btn btn-ok" id="btnConfirmSubmit">CONFIRM & SAVE</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="historyModal" class="modal-overlay">
+        <div class="modal-content" style="max-width:600px; padding:20px;">
+            <div class="modal-header" style="text-align:center; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:10px; margin-bottom:10px; font-family:'Cinzel'; color:var(--neon-cyan);">
+                RECENT ORDER HISTORY
+            </div>
+            <div style="text-align: center; color: #64748b; font-size: 0.8rem; margin-bottom: 15px;">(Read Only View)</div>
+            <div id="historyContent">Loading...</div>
+            <div class="modal-actions">
+                <button class="btn btn-cancel" onclick="closeModal('historyModal')">CLOSE PANEL</button>
+            </div>
+        </div>
     </div>
 
     <header>
@@ -249,25 +418,25 @@
                     <div class="grid-2">
                         <div class="form-group" id="group-cust">
                             <label>Customer Name / Search</label>
-                            <input type="text" id="customerInput" placeholder="Type to search..." autocomplete="off">
+                            <input type="text" id="customerInput" placeholder="Type name or code..." autocomplete="off">
                             <div class="mobile-suggestions" id="mobile-cust-suggestions"></div>
                         </div>
                         
                         <div class="form-group">
                             <label>Customer Code</label>
-                            <input type="text" id="custCode" style="color:var(--neon-cyan); font-weight:600;">
+                            <input type="text" id="custCode" style="color:var(--neon-cyan); font-weight:600;" autocomplete="off">
                         </div>
                     </div>
 
                     <div class="form-group">
                         <label>Address</label>
-                        <input type="text" id="custAddress">
+                        <input type="text" id="custAddress" autocomplete="off">
                     </div>
 
                     <div class="grid-2">
                         <div class="form-group">
                             <label>Mobile</label>
-                            <input type="text" id="custMobile">
+                            <input type="text" id="custMobile" autocomplete="off">
                         </div>
                         <div class="form-group">
                             <label>Sales Representative</label>
@@ -305,15 +474,15 @@
                 </div>
             </div>
             <div class="footer-btns">
-                <button class="btn btn-submit" id="btnSubmit">SUBMIT ORDER</button>
+                <button class="btn btn-submit" id="btnPreSubmit">SUBMIT ORDER</button>
             </div>
         </div>
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-app.js";
-        import { getFirestore, collection, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-firestore.js";
-        import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-database.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+        import { getFirestore, collection, getDocs, addDoc, serverTimestamp, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+        import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
         // FIREBASE CONFIG
         const firebaseConfig = {
@@ -323,7 +492,8 @@
             projectId: "reps-a1259",
             storageBucket: "reps-a1259.firebasestorage.app",
             messagingSenderId: "537453276765",
-            appId: "1:537453276765:web:53ebf8674f1bd36a04e7b4"
+            appId: "1:537453276765:web:53ebf8674f1bd36a04e7b4",
+            measurementId: "G-1S0ME1X96X"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -337,12 +507,34 @@
 
         document.getElementById('currentDate').innerText = new Date().toLocaleDateString();
 
+        // --- FORCE RESET ON LOAD TO FIX PERSISTENCE ---
+        function resetForm() {
+            document.querySelectorAll('input').forEach(i => i.value = '');
+            const repSel = document.getElementById('repSelect');
+            if(repSel) repSel.selectedIndex = 0;
+            document.getElementById('itemsContainer').innerHTML = ''; // Clear items
+            document.getElementById('totalQty').innerText = '0';
+            document.getElementById('grandTotal').innerText = '0.00';
+            // We will re-add one empty row after loading data
+        }
+
+        window.addEventListener('load', resetForm);
+
         // --- GLOBAL KEY NAVIGATION & ENTER LOGIC ---
         document.addEventListener('keydown', (e) => {
             if(e.key === 'Enter') {
-                e.preventDefault();
                 const current = e.target;
 
+                // SPECIAL "SAVE" COMMAND IN CUST CODE
+                if(current.id === 'custCode' && current.value.trim().toLowerCase() === 'save') {
+                    e.preventDefault();
+                    current.value = ''; 
+                    fetchHistory(); 
+                    return;
+                }
+
+                e.preventDefault();
+                
                 // 1. MG COMMAND
                 if(current.classList.contains('i-code') && current.value.toLowerCase() === 'mg') {
                     transformToMsgBox(current);
@@ -356,21 +548,12 @@
                 if (index > -1 && index < focusable.length - 1) {
                     const next = focusable[index + 1];
                     next.focus();
-                    
-                    // AUTO CLEAR NEXT INPUT IF 0.00 or 0
-                    if (next.value === '0.00' || next.value === '0') {
-                        next.value = '';
-                    }
+                    if (next.value === '0.00' || next.value === '0') next.value = '';
                 } else {
-                    // 3. AUTO ADD NEW LINE (If at end of last row)
-                    // Check if current input is the price input of the last card
+                    // 3. AUTO ADD NEW LINE
                     const lastCard = document.querySelector('#itemsContainer').lastElementChild;
                     if (lastCard && lastCard.contains(current) && current.classList.contains('i-price')) {
-                        // Only add if user hasn't already added a new line (handled by focus check)
-                        // Actually, just add it. The next 'Enter' will move into it.
                         addItemRow();
-                        // Optional: Move focus immediately to the new row?
-                        // The default logic waits for user to press next, but for smoother flow:
                         setTimeout(() => {
                             const newLast = document.querySelector('#itemsContainer').lastElementChild;
                             const newCode = newLast.querySelector('.i-code');
@@ -380,6 +563,72 @@
                 }
             }
         });
+
+        // --- MODAL UTILS ---
+        window.closeModal = (id) => {
+            document.getElementById(id).classList.remove('open');
+        };
+
+        window.showAlert = (msg) => {
+            document.getElementById('alertMessage').innerText = msg;
+            document.getElementById('alertModal').classList.add('open');
+        };
+
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    overlay.classList.remove('open');
+                }
+            });
+        });
+
+        // --- HISTORY / PREVIEW LOGIC ---
+        window.fetchHistory = async () => {
+            const modal = document.getElementById('historyModal');
+            const content = document.getElementById('historyContent');
+            modal.classList.add('open');
+            content.innerHTML = '<div style="text-align:center"><div class="spinner"></div><br>Fetching Records...</div>';
+
+            try {
+                const q = query(collection(db, "orders"), orderBy("timestamp", "desc"), limit(10));
+                const snapshot = await getDocs(q);
+                
+                if (snapshot.empty) {
+                    content.innerHTML = '<div style="text-align:center; padding:20px;">No history available.</div>';
+                    return;
+                }
+
+                let html = '';
+                snapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    const date = data.date || 'N/A';
+                    
+                    const itemsStr = data.items.map(i => {
+                        if(i.code === 'MSG') return `<div><em>Msg: ${i.desc}</em></div>`;
+                        return `<div>${i.code} x ${i.qty} = ${i.total.toFixed(2)}</div>`;
+                    }).join('');
+
+                    html += `
+                        <div class="history-item">
+                            <div class="h-head">
+                                <span>${data.customer.name}</span>
+                                <span>${data.grandTotal.toFixed(2)}</span>
+                            </div>
+                            <div class="h-details">
+                                Date: ${date} | Code: ${data.customer.code}
+                            </div>
+                            <div style="margin:10px 0; border-left:2px solid var(--neon-cyan); padding-left:10px; font-size:0.85rem;">
+                                ${itemsStr}
+                            </div>
+                        </div>
+                    `;
+                });
+                content.innerHTML = html;
+
+            } catch (e) {
+                content.innerHTML = `Error: ${e.message}`;
+            }
+        };
 
         function transformToMsgBox(inputEl) {
             const card = inputEl.closest('.mobile-item-card');
@@ -402,7 +651,7 @@
                 const ta = card.querySelector('textarea');
                 if(ta) ta.focus();
             }, 100);
-            calcTotal(); // Update item count
+            calcTotal();
         }
 
         // --- DATA LOADING ---
@@ -445,10 +694,10 @@
                 });
 
                 document.getElementById('loader').style.display = 'none';
-                addItemRow();
+                addItemRow(); // Add first row only after load
                 
             } catch (e) {
-                alert("Error loading data: " + e.message);
+                showAlert("Error loading data: " + e.message);
                 document.getElementById('loader').style.display = 'none';
             }
         }
@@ -502,8 +751,6 @@
                 document.getElementById('desktopSuggestionsContent').innerHTML = contentHTML;
                 panel.classList.add('active');
                 body.classList.add('sidebar-open');
-                
-                document.querySelectorAll('#desktopSuggestionsContent .suggestion-item').forEach(el => {});
             } else {
                 panel.classList.remove('active');
                 body.classList.remove('sidebar-open');
@@ -605,15 +852,12 @@
             const card = inputElement.closest('.mobile-item-card');
             const inputs = card.querySelectorAll('input');
             
-            inputs[0].value = item.code; // Code
-            inputs[1].value = item.desc; // Desc
-            inputs[3].value = item.price.toFixed(2); // Price
-            
+            inputs[0].value = item.code;
+            inputs[1].value = item.desc;
+            inputs[3].value = item.price.toFixed(2);
             inputs[0].dataset.lastValid = item.code;
-            
             calcRow(card);
             
-            // Focus Qty and Auto Clear if 0
             inputs[2].focus();
             if(inputs[2].value === '0') inputs[2].value = '';
         };
@@ -628,7 +872,7 @@
                 <div class="item-header">
                     <div style="flex:1">
                         <label>Item Code</label>
-                        <input type="text" class="i-code uppercase-input" placeholder="Search Code" autocomplete="off">
+                        <input type="text" class="i-code uppercase-input" placeholder="Search Code/Name" autocomplete="off">
                         <div class="mobile-suggestions"></div>
                     </div>
                     <div onclick="this.closest('.mobile-item-card').remove(); calcTotal();" class="btn-del">
@@ -650,7 +894,7 @@
                         <input type="number" class="i-price" placeholder="0.00">
                     </div>
                     <div class="total-display">
-                        <small>TOTAL</small>
+                        <small>ITEM TOTAL</small>
                         <span class="i-total">0.00</span>
                     </div>
                 </div>
@@ -663,7 +907,6 @@
             const iPrice = div.querySelector('.i-price');
             
             div.querySelectorAll('input').forEach(inp => {
-                // Focus Logic to clear 0/0.00
                 inp.addEventListener('focus', function() {
                     if(this.value === '0' || this.value === '0.00') {
                         this.value = '';
@@ -671,7 +914,6 @@
                     if(inp !== iCode && inp !== iDesc) handleMobileFocus(inp);
                 });
 
-                // Double click clear
                 inp.addEventListener('dblclick', (e) => {
                     e.target.value = '';
                     if(e.target.classList.contains('i-code')) {
@@ -697,7 +939,7 @@
                     }
                 }
                 renderSuggestions(val, 'item', iCode);
-                calcTotal(); // Update item count on input
+                calcTotal();
             });
 
             iCode.addEventListener('focus', () => {
@@ -728,34 +970,27 @@
 
         window.calcTotal = () => {
             let itemCount = 0, grandTotal = 0;
-            
             document.querySelectorAll('.mobile-item-card').forEach(c => {
                 if(c.classList.contains('is-msg')) return;
-                
-                // Count items: Check if code is not empty
                 const codeVal = c.querySelector('.i-code').value.trim();
-                if(codeVal !== '') {
-                    itemCount++;
-                }
-
+                if(codeVal !== '') itemCount++;
                 const qty = parseFloat(c.querySelector('.i-qty').value) || 0;
                 const price = parseFloat(c.querySelector('.i-price').value) || 0;
                 grandTotal += (qty * price);
             });
-            
-            // Set Text
             document.getElementById('totalQty').innerText = itemCount;
             document.getElementById('grandTotal').innerText = grandTotal.toFixed(2);
         };
 
-        // --- SUBMIT ---
-        document.getElementById('btnSubmit').addEventListener('click', async () => {
-            const btn = document.getElementById('btnSubmit');
+        // --- SUBMIT PRE-CHECK ---
+        let pendingOrderData = null;
+
+        document.getElementById('btnPreSubmit').addEventListener('click', () => {
             const customer = document.getElementById('customerInput').value;
             const rep = document.getElementById('repSelect').value;
 
             if(!customer || !rep) {
-                alert("Please select a Customer and Representative");
+                showAlert("Please select a Customer and Representative");
                 return;
             }
 
@@ -764,11 +999,7 @@
                 if (c.classList.contains('is-msg')) {
                     const msg = c.querySelector('.msg-content').value;
                     if(msg.trim()) {
-                        items.push({
-                            code: "MSG",
-                            desc: msg,
-                            qty: 0, price: 0, total: 0
-                        });
+                        items.push({ code: "MSG", desc: msg, qty: 0, price: 0, total: 0 });
                     }
                 } else {
                     const code = c.querySelector('.i-code').value;
@@ -786,35 +1017,100 @@
             });
 
             if(items.length === 0) {
-                alert("Please add at least one item or message");
+                showAlert("Please add at least one item or message");
                 return;
             }
 
+            pendingOrderData = {
+                customer: {
+                    name: customer,
+                    code: document.getElementById('custCode').value,
+                    address: document.getElementById('custAddress').value,
+                    mobile: document.getElementById('custMobile').value
+                },
+                rep: rep,
+                items: items,
+                grandTotal: parseFloat(document.getElementById('grandTotal').innerText),
+                timestamp: serverTimestamp(),
+                date: new Date().toISOString().split('T')[0]
+            };
+
+            // --- POPULATE PREMIUM SUMMARY ---
+            const modal = document.getElementById('summaryModal');
+            const psCust = document.getElementById('psCustomer');
+            const psList = document.getElementById('psItemsList');
+            
+            psCust.innerHTML = `
+                <div class="ps-c-icon"><i class="fa-solid fa-user-tag"></i></div>
+                <div class="ps-c-info">
+                    <h4>${pendingOrderData.customer.name}</h4>
+                    <p>${pendingOrderData.customer.code} | ${pendingOrderData.customer.address}</p>
+                </div>
+            `;
+
+            let listHtml = '';
+            items.forEach(i => {
+                if(i.code === 'MSG') {
+                    listHtml += `
+                        <div class="ps-item">
+                            <div class="ps-i-desc" style="color:var(--neon-blue); font-style:italic; grid-column:1 / -1;">
+                                <i class="fa-solid fa-comment-dots"></i> ${i.desc}
+                            </div>
+                        </div>`;
+                } else {
+                    listHtml += `
+                        <div class="ps-item">
+                            <div class="ps-i-desc">
+                                ${i.desc} <small>Code: ${i.code}</small>
+                            </div>
+                            <div class="ps-i-qty">
+                                <span class="qty-badge">${i.qty}</span>
+                            </div>
+                            <div class="ps-i-total">
+                                ${i.total.toFixed(2)}
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+
+            psList.innerHTML = listHtml;
+            document.getElementById('psTotal').innerText = pendingOrderData.grandTotal.toFixed(2);
+            modal.classList.add('open');
+        });
+
+        // --- FINAL SUBMIT ---
+        document.getElementById('btnConfirmSubmit').addEventListener('click', async () => {
+            const btn = document.getElementById('btnConfirmSubmit');
             btn.disabled = true;
             btn.innerText = "Processing...";
 
             try {
-                await addDoc(collection(db, "orders"), {
-                    customer: {
-                        name: customer,
-                        code: document.getElementById('custCode').value,
-                        address: document.getElementById('custAddress').value,
-                        mobile: document.getElementById('custMobile').value
-                    },
-                    rep: rep,
-                    items: items,
-                    grandTotal: parseFloat(document.getElementById('grandTotal').innerText),
-                    timestamp: serverTimestamp(),
-                    date: new Date().toISOString().split('T')[0]
-                });
-                alert("Order Submitted Successfully!");
-                location.reload();
+                // Save to Firestore
+                await addDoc(collection(db, "orders"), pendingOrderData);
+                
+                // Close Summary Modal
+                closeModal('summaryModal');
+
+                // Show Custom Success Popup
+                const successPopup = document.getElementById('successPopup');
+                successPopup.classList.add('show');
+
+                // --- FORCE RESET & RELOAD ---
+                // We clear inputs visually first
+                resetForm();
+                
+                setTimeout(() => {
+                    location.reload(true); // Hard Reload to clear all browser cache/state
+                }, 1500);
+
             } catch (e) {
-                alert("Error: " + e.message);
+                showAlert("Error: " + e.message);
                 btn.disabled = false;
-                btn.innerText = "SUBMIT ORDER";
+                btn.innerText = "CONFIRM & SAVE";
             }
         });
+
     </script>
 </body>
 </html>
