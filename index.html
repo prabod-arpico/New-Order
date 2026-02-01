@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sales Portal | Premium Interface</title>
+    <title>New Order | Prabodfx</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
@@ -56,6 +56,7 @@
             font-family: 'Cinzel', serif; font-size: 1.2rem; font-weight: 700;
             background: linear-gradient(90deg, #fff, var(--neon-cyan));
             -webkit-background-clip: text; color: transparent;
+            cursor: pointer; user-select: none;
         }
         .date-badge {
             font-family: 'Cinzel'; border: 1px solid var(--border-color);
@@ -76,7 +77,7 @@
         .desktop-wrapper { display: flex; gap: 30px; position: relative; }
         .content-area { flex: 1; width: 100%; transition: width 0.3s ease; }
 
-        /* --- DESKTOP FLOATING SIDEBAR --- */
+        /* --- SIDEBAR --- */
         #desktopSuggestionsPanel {
             position: fixed; top: calc(var(--header-height) + 20px); right: 20px;
             width: 350px; height: calc(100vh - 120px);
@@ -121,7 +122,6 @@
             border-radius: 10px; color: #fff; font-size: 1rem; transition: all 0.3s;
         }
         
-        /* Uppercase input class */
         .uppercase-input { text-transform: uppercase; }
 
         input:focus, textarea:focus, select:focus {
@@ -131,7 +131,6 @@
 
         textarea { resize: vertical; min-height: 80px; font-family: 'Inter', sans-serif; }
 
-        /* --- PREMIUM SELECT BOX --- */
         .premium-select { position: relative; cursor: pointer; }
         .premium-select select { appearance: none; -webkit-appearance: none; cursor: pointer; padding-right: 45px; background:rgb(15, 15, 180); border: 1px solid rgba(6, 182, 212, 0.3); }
         .premium-select::after {
@@ -148,12 +147,7 @@
             border-radius: 12px; padding: 15px; margin-bottom: 15px; position: relative;
         }
         .mobile-item-card.focused { border-color: var(--neon-cyan); box-shadow: 0 0 20px rgba(6,182,212,0.1); background: rgba(6,182,212,0.02); }
-        
-        /* Message Box Style */
-        .mobile-item-card.is-msg {
-            border-color: var(--neon-blue);
-            background: rgba(59, 130, 246, 0.05);
-        }
+        .mobile-item-card.is-msg { border-color: var(--neon-blue); background: rgba(59, 130, 246, 0.05); }
 
         .item-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .btn-del {
@@ -165,7 +159,7 @@
         .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
         .total-display { text-align: center; color: var(--neon-cyan); font-family: 'Cinzel'; font-weight: bold; display: flex; flex-direction: column; justify-content: center; height: 100%; font-size: 0.9rem; }
 
-        /* --- MOBILE SUGGESTIONS --- */
+        /* --- SUGGESTIONS --- */
         .mobile-suggestions {
             background: rgba(15, 23, 42, 0.95); border: 1px solid var(--neon-cyan); border-top: none;
             border-radius: 0 0 10px 10px; max-height: 200px; overflow-y: auto;
@@ -193,13 +187,25 @@
             border-top: 1px solid var(--border-color); padding: 15px 20px; z-index: 1000;
         }
         .action-inner { max-width: 1600px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
-        .footer-totals { display: flex; gap: 20px; }
-        .f-item small { display: block; font-size: 0.65rem; color: #64748b; font-weight: 700; letter-spacing: 1px; }
-        .f-item span { font-family: 'Cinzel'; font-size: 1.1rem; color: var(--neon-cyan); }
+        
+        /* Grid Layout for Perfect Alignment */
+        .footer-totals { 
+            display: grid; 
+            grid-template-columns: auto auto; 
+            gap: 30px; 
+            align-items: center;
+        }
+        .f-item {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start; /* Align text left within the item */
+        }
+        .f-item small { display: block; font-size: 0.65rem; color: #64748b; font-weight: 700; letter-spacing: 1px; margin-bottom: 2px; }
+        .f-item span { font-family: 'Cinzel'; font-size: 1.2rem; color: var(--neon-cyan); line-height: 1; }
+
         .footer-btns { display: flex; gap: 10px; }
         .btn { padding: 12px 25px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; font-size: 0.9rem; transition: transform 0.2s; }
         .btn:active { transform: scale(0.96); }
-        .btn-reset { background: rgba(255,255,255,0.1); color: #cbd5e1; }
         .btn-submit { background: linear-gradient(135deg, var(--neon-blue), #2563eb); color: white; box-shadow: 0 0 15px rgba(59,130,246,0.4); }
 
         @media (min-width: 768px) {
@@ -220,7 +226,9 @@
     </div>
 
     <header>
-        <div class="brand"><i class="fa-solid fa-cube"></i> SALES PORTAL</div>
+        <div class="brand" ondblclick="location.reload()" title="Double Tap to Reset">
+            <i class="fa-solid fa-cube"></i> NEW ORDER
+        </div>
         <div class="date-badge" id="currentDate"></div>
     </header>
 
@@ -288,7 +296,7 @@
         <div class="action-inner">
             <div class="footer-totals">
                 <div class="f-item">
-                    <small>ITEMS</small>
+                    <small>ITEM COUNT</small>
                     <span id="totalQty">0</span>
                 </div>
                 <div class="f-item">
@@ -297,8 +305,7 @@
                 </div>
             </div>
             <div class="footer-btns">
-                <button class="btn btn-reset" onclick="location.reload()">RESET</button>
-                <button class="btn btn-submit" id="btnSubmit">SUBMIT</button>
+                <button class="btn btn-submit" id="btnSubmit">SUBMIT ORDER</button>
             </div>
         </div>
     </div>
@@ -336,17 +343,40 @@
                 e.preventDefault();
                 const current = e.target;
 
-                // CHECK FOR "MG" COMMAND
+                // 1. MG COMMAND
                 if(current.classList.contains('i-code') && current.value.toLowerCase() === 'mg') {
                     transformToMsgBox(current);
                     return;
                 }
 
-                // NAVIGATION
+                // 2. NAVIGATE & AUTO-CLEAR
                 const focusable = Array.from(document.querySelectorAll('input:not([type=hidden]):not([disabled]), select, textarea'));
                 const index = focusable.indexOf(current);
+                
                 if (index > -1 && index < focusable.length - 1) {
-                    focusable[index + 1].focus();
+                    const next = focusable[index + 1];
+                    next.focus();
+                    
+                    // AUTO CLEAR NEXT INPUT IF 0.00 or 0
+                    if (next.value === '0.00' || next.value === '0') {
+                        next.value = '';
+                    }
+                } else {
+                    // 3. AUTO ADD NEW LINE (If at end of last row)
+                    // Check if current input is the price input of the last card
+                    const lastCard = document.querySelector('#itemsContainer').lastElementChild;
+                    if (lastCard && lastCard.contains(current) && current.classList.contains('i-price')) {
+                        // Only add if user hasn't already added a new line (handled by focus check)
+                        // Actually, just add it. The next 'Enter' will move into it.
+                        addItemRow();
+                        // Optional: Move focus immediately to the new row?
+                        // The default logic waits for user to press next, but for smoother flow:
+                        setTimeout(() => {
+                            const newLast = document.querySelector('#itemsContainer').lastElementChild;
+                            const newCode = newLast.querySelector('.i-code');
+                            if(newCode) newCode.focus();
+                        }, 50);
+                    }
                 }
             }
         });
@@ -368,11 +398,11 @@
                     <textarea class="msg-content" placeholder="Type your message here..."></textarea>
                 </div>
             `;
-            // Focus the new textarea
             setTimeout(() => {
                 const ta = card.querySelector('textarea');
                 if(ta) ta.focus();
             }, 100);
+            calcTotal(); // Update item count
         }
 
         // --- DATA LOADING ---
@@ -473,10 +503,7 @@
                 panel.classList.add('active');
                 body.classList.add('sidebar-open');
                 
-                // Add click events to desktop suggestions
-                document.querySelectorAll('#desktopSuggestionsContent .suggestion-item').forEach(el => {
-                   // Listener attached in renderSuggestions logic via closure 
-                });
+                document.querySelectorAll('#desktopSuggestionsContent .suggestion-item').forEach(el => {});
             } else {
                 panel.classList.remove('active');
                 body.classList.remove('sidebar-open');
@@ -492,7 +519,6 @@
         // --- CUSTOMER SEARCH ---
         const custInput = document.getElementById('customerInput');
         
-        // Double Click to Clear Customer
         custInput.addEventListener('dblclick', () => {
             custInput.value = '';
             document.getElementById('custCode').value = '';
@@ -507,18 +533,15 @@
 
         custInput.addEventListener('input', (e) => {
             const val = e.target.value;
-            // Free typing allowed, so don't auto-clear unless empty
             if(!val) {
                 document.getElementById('custCode').value = '';
                 document.getElementById('custAddress').value = '';
                 document.getElementById('custMobile').value = '';
             }
-            // Auto Select Exact Match
             const exact = customersData.find(c => c.code.toLowerCase() === val.toLowerCase() || c.name.toLowerCase() === val.toLowerCase());
             if(exact) {
                 selectCustomer(exact);
             }
-            
             renderSuggestions(val, 'customer');
         });
 
@@ -545,7 +568,6 @@
                 }
             }).join('') : '<div style="padding:20px; text-align:center; color:#64748b;">No matches found</div>';
 
-            // Common Handler for Click
             const attachListeners = (container) => {
                 container.querySelectorAll('.suggestion-item').forEach((el, idx) => {
                     el.addEventListener('click', () => {
@@ -587,11 +609,13 @@
             inputs[1].value = item.desc; // Desc
             inputs[3].value = item.price.toFixed(2); // Price
             
-            // Store the "locked" code to detect changes later
             inputs[0].dataset.lastValid = item.code;
             
             calcRow(card);
-            inputs[2].focus(); // Focus Qty
+            
+            // Focus Qty and Auto Clear if 0
+            inputs[2].focus();
+            if(inputs[2].value === '0') inputs[2].value = '';
         };
 
         // --- DYNAMIC ITEMS ---
@@ -638,11 +662,18 @@
             const iQty = div.querySelector('.i-qty');
             const iPrice = div.querySelector('.i-price');
             
-            // 1. Double Click Clear Logic
             div.querySelectorAll('input').forEach(inp => {
+                // Focus Logic to clear 0/0.00
+                inp.addEventListener('focus', function() {
+                    if(this.value === '0' || this.value === '0.00') {
+                        this.value = '';
+                    }
+                    if(inp !== iCode && inp !== iDesc) handleMobileFocus(inp);
+                });
+
+                // Double click clear
                 inp.addEventListener('dblclick', (e) => {
                     e.target.value = '';
-                    // If code cleared, clear dependencies
                     if(e.target.classList.contains('i-code')) {
                         iDesc.value = '';
                         iPrice.value = '';
@@ -652,27 +683,21 @@
                 });
             });
 
-            // 2. Code Input Logic (Upper, Auto Select, Dependencies)
             iCode.addEventListener('input', (e) => {
-                // Force Uppercase
                 e.target.value = e.target.value.toUpperCase();
                 const val = e.target.value;
-
-                // Auto Select Exact Match
                 const exact = itemsData.find(i => i.code === val);
                 if(exact) {
                     selectItem(exact, iCode);
                 } else {
-                    // Logic: If user changes code and it's NOT exact match, 
-                    // and previously it WAS a valid code, clear dependencies to prevent mismatch
                     if (e.target.dataset.lastValid && val !== e.target.dataset.lastValid) {
                         iDesc.value = '';
                         iPrice.value = '';
-                        e.target.dataset.lastValid = ''; // Reset
+                        e.target.dataset.lastValid = '';
                     }
                 }
-                
                 renderSuggestions(val, 'item', iCode);
+                calcTotal(); // Update item count on input
             });
 
             iCode.addEventListener('focus', () => {
@@ -680,16 +705,13 @@
                 renderSuggestions(iCode.value, 'item', iCode);
             });
 
-            // 3. Desc Search Logic
             iDesc.addEventListener('input', (e) => renderSuggestions(e.target.value, 'item', iDesc));
             iDesc.addEventListener('focus', () => {
                 handleMobileFocus(iDesc);
                 renderSuggestions(iDesc.value, 'item', iDesc);
             });
 
-            // 4. Calc Logic
             [iQty, iPrice].forEach(inp => {
-                inp.addEventListener('focus', () => handleMobileFocus(inp));
                 inp.addEventListener('input', () => calcRow(div));
             });
         };
@@ -705,16 +727,25 @@
         }
 
         window.calcTotal = () => {
-            let q = 0, t = 0;
+            let itemCount = 0, grandTotal = 0;
+            
             document.querySelectorAll('.mobile-item-card').forEach(c => {
-                if(c.classList.contains('is-msg')) return; // Skip msg boxes
+                if(c.classList.contains('is-msg')) return;
+                
+                // Count items: Check if code is not empty
+                const codeVal = c.querySelector('.i-code').value.trim();
+                if(codeVal !== '') {
+                    itemCount++;
+                }
+
                 const qty = parseFloat(c.querySelector('.i-qty').value) || 0;
                 const price = parseFloat(c.querySelector('.i-price').value) || 0;
-                q += qty;
-                t += (qty * price);
+                grandTotal += (qty * price);
             });
-            document.getElementById('totalQty').innerText = q;
-            document.getElementById('grandTotal').innerText = t.toFixed(2);
+            
+            // Set Text
+            document.getElementById('totalQty').innerText = itemCount;
+            document.getElementById('grandTotal').innerText = grandTotal.toFixed(2);
         };
 
         // --- SUBMIT ---
@@ -731,22 +762,18 @@
             const items = [];
             document.querySelectorAll('.mobile-item-card').forEach(c => {
                 if (c.classList.contains('is-msg')) {
-                    // Handle Message Row
                     const msg = c.querySelector('.msg-content').value;
                     if(msg.trim()) {
                         items.push({
                             code: "MSG",
                             desc: msg,
-                            qty: 0,
-                            price: 0,
-                            total: 0
+                            qty: 0, price: 0, total: 0
                         });
                     }
                 } else {
-                    // Handle Standard Row
                     const code = c.querySelector('.i-code').value;
                     const qty = c.querySelector('.i-qty').value;
-                    if(code) { // Allow anything, even if 0 qty
+                    if(code) { 
                         items.push({
                             code: code,
                             desc: c.querySelector('.i-desc').value,
@@ -785,10 +812,9 @@
             } catch (e) {
                 alert("Error: " + e.message);
                 btn.disabled = false;
-                btn.innerText = "SUBMIT";
+                btn.innerText = "SUBMIT ORDER";
             }
         });
-
     </script>
 </body>
 </html>
