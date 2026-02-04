@@ -3,213 +3,340 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>New Order | Prabodfx</title>
+    <title>New Order | Premium Portal</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     
     <style>
         :root {
-            --neon-cyan: #06b6d4;
-            --neon-blue: #3b82f6;
-            --neon-red: #ef4444;
-            --neon-green: #10b981;
-            --bg-dark: #020617;
-            --glass-panel: rgba(15, 23, 42, 0.90);
-            --border-color: rgba(6, 182, 212, 0.3);
-            --header-height: 70px;
+            --primary-glow: #4f46e5; 
+            --accent-blue: #0ea5e9;   
+            --accent-purple: #8b5cf6; 
+            --bg-deep: #030014;       
+            
+            --glass-surface: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-highlight: rgba(255, 255, 255, 0.15);
+            
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            
+            --header-height: 80px;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-dark);
-            background-image: 
-                radial-gradient(circle at 10% 20%, rgba(6, 182, 212, 0.08) 0%, transparent 40%),
-                radial-gradient(circle at 90% 80%, rgba(59, 130, 246, 0.08) 0%, transparent 40%);
-            color: #f1f5f9;
+            font-family: 'Outfit', 'Inter', sans-serif;
+            background-color: var(--bg-deep);
+            color: var(--text-main);
             min-height: 100vh;
             overflow-x: hidden;
-            padding-bottom: 100px;
+            padding-bottom: 120px;
+            background-image: 
+                radial-gradient(circle at 50% -20%, rgba(79, 70, 229, 0.4) 0%, transparent 50%),
+                radial-gradient(circle at 0% 50%, rgba(14, 165, 233, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 100% 50%, rgba(139, 92, 246, 0.1) 0%, transparent 40%);
+            background-attachment: fixed;
+        }
+
+        /* --- UI HELPERS --- */
+        .text-center { text-align: center; }
+        
+        /* --- STATUS INDICATOR (STRICT RED/GREEN) --- */
+        #netStatus {
+            position: fixed; top: 20px; right: 20px; z-index: 10001;
+            width: 14px; height: 14px; border-radius: 50%;
+            transition: background-color 0.2s ease, box-shadow 0.2s ease;
+            
+            /* DEFAULT / ONLINE STATE (GREEN) */
+            background-color: #22c55e;
+            box-shadow: 0 0 15px #22c55e;
+        }
+        
+        /* OFFLINE STATE (RED) - Uses !important to force color immediately */
+        #netStatus.offline {
+            background-color: #ef4444 !important;
+            box-shadow: 0 0 15px #ef4444 !important;
+        }
+        
+        #pendingBadge {
+            position: fixed; top: 20px; right: 45px; z-index: 10001;
+            background: var(--accent-purple); color: #fff;
+            font-size: 0.7rem; padding: 2px 8px; border-radius: 10px;
+            font-family: 'Outfit'; font-weight: 700; display: none;
+            box-shadow: 0 0 10px rgba(139,92,246,0.5);
+            cursor: pointer;
+        }
+
+        /* --- AMBIENT GLOW EFFECTS --- */
+        .ambient-orb {
+            position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+            width: 600px; height: 300px;
+            background: radial-gradient(ellipse at center, rgba(56, 189, 248, 0.15) 0%, transparent 70%);
+            pointer-events: none; z-index: -1;
+            filter: blur(60px);
         }
 
         /* --- LOADER --- */
         #loader {
-            position: fixed; inset: 0; background: #020617; z-index: 10000;
+            position: fixed; inset: 0; background: var(--bg-deep); z-index: 10000;
             display: flex; align-items: center; justify-content: center; flex-direction: column;
         }
         .spinner {
-            width: 50px; height: 50px; border: 3px solid rgba(6,182,212,0.1);
-            border-top-color: var(--neon-cyan); border-radius: 50%;
+            width: 60px; height: 60px; 
+            border: 2px solid rgba(255,255,255,0.1);
+            border-top-color: var(--accent-blue); 
+            border-right-color: var(--accent-purple);
+            border-radius: 50%;
             animation: spin 1s infinite linear;
+            box-shadow: 0 0 30px rgba(14, 165, 233, 0.2);
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
         /* --- HEADER --- */
         header {
-            position: fixed; top: 0; left: 0; right: 0; height: var(--header-height);
-            background: rgba(2, 6, 23, 0.95); backdrop-filter: blur(15px);
-            border-bottom: 1px solid var(--border-color);
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            width: 95%; max-width: 1600px; height: var(--header-height);
+            background: rgba(15, 23, 42, 0.6); 
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
             z-index: 1000; display: flex; align-items: center; justify-content: space-between;
-            padding: 0 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+            padding: 0 30px; 
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
         }
         .brand {
-            font-family: 'Cinzel', serif; font-size: 1.2rem; font-weight: 700;
-            background: linear-gradient(90deg, #fff, var(--neon-cyan));
+            font-family: 'Outfit', sans-serif; font-size: 1.4rem; font-weight: 700;
+            background: linear-gradient(135deg, #fff 0%, var(--accent-blue) 100%);
             -webkit-background-clip: text; color: transparent;
-            cursor: pointer; user-select: none;
+            cursor: pointer; letter-spacing: 1px;
+            display: flex; align-items: center; gap: 10px;
         }
+        .brand i { color: var(--accent-blue); font-size: 1.2rem; filter: drop-shadow(0 0 10px var(--accent-blue)); }
+        
         .date-badge {
-            font-family: 'Cinzel'; border: 1px solid var(--border-color);
-            padding: 5px 15px; border-radius: 20px; font-size: 0.8rem;
-            color: var(--neon-cyan); background: rgba(6,182,212,0.05);
+            font-family: 'Outfit'; font-weight: 500;
+            border: 1px solid rgba(14, 165, 233, 0.3);
+            padding: 8px 20px; border-radius: 30px; font-size: 0.85rem;
+            color: #fff; background: linear-gradient(90deg, rgba(14,165,233,0.1), transparent);
+            box-shadow: 0 0 15px rgba(14, 165, 233, 0.1);
+            cursor: pointer;
+            user-select: none;
         }
 
-        /* --- LAYOUT --- */
+        /* --- LAYOUT GRID SYSTEM --- */
         .main-container {
-            margin-top: var(--header-height);
+            margin-top: calc(var(--header-height) + 40px);
             padding: 20px;
             max-width: 1600px;
-            margin-left: auto;
-            margin-right: auto;
+            margin-left: auto; margin-right: auto;
+        }
+
+        .desktop-wrapper { 
+            position: relative; 
+            display: grid;
+            grid-template-columns: 1fr; 
+            gap: 30px;
+        }
+
+        .content-area { width: 100%; }
+
+        /* --- SIDEBAR SUGGESTIONS (DESKTOP) --- */
+        #desktopSuggestionsPanel {
+            background: rgba(10, 10, 20, 0.6); 
+            border: 1px solid var(--glass-border);
+            border-left: 1px solid var(--accent-blue);
+            border-radius: 20px; backdrop-filter: blur(30px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+            display: flex; flex-direction: column; overflow: hidden;
+            
+            height: fit-content;
+            max-height: calc(100vh - 150px);
+            position: sticky;
+            top: 130px;
             transition: all 0.3s ease;
         }
 
-        .desktop-wrapper { display: flex; gap: 30px; position: relative; }
-        .content-area { flex: 1; width: 100%; transition: width 0.3s ease; }
-
-        /* --- SIDEBAR --- */
-        #desktopSuggestionsPanel {
-            position: fixed; top: calc(var(--header-height) + 20px); right: 20px;
-            width: 350px; height: calc(100vh - 120px);
-            background: rgba(15, 23, 42, 0.95); border: 1px solid var(--neon-cyan);
-            border-radius: 16px; backdrop-filter: blur(20px);
-            box-shadow: -10px 10px 30px rgba(0,0,0,0.5);
-            z-index: 900; transform: translateX(120%); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            display: flex; flex-direction: column; overflow: hidden;
-        }
-        #desktopSuggestionsPanel.active { transform: translateX(0); }
-        @media (min-width: 1200px) { body.sidebar-open .content-area { margin-right: 370px; } }
-
         .sidebar-header {
-            padding: 15px 20px; background: rgba(6, 182, 212, 0.1);
-            border-bottom: 1px solid var(--border-color); color: var(--neon-cyan);
-            font-family: 'Cinzel'; font-weight: 600; display: flex; justify-content: space-between; align-items: center;
+            padding: 20px; background: linear-gradient(to right, rgba(14,165,233,0.1), transparent);
+            border-bottom: 1px solid var(--glass-border); color: #fff;
+            font-weight: 600; letter-spacing: 1px; font-size: 0.9rem;
         }
-        #desktopSuggestionsContent { flex: 1; overflow-y: auto; padding: 15px; }
+        #desktopSuggestionsContent { flex: 1; overflow-y: auto; padding: 10px; min-height: 100px; }
 
-        /* --- CARDS --- */
+        /* --- GLASS CARDS --- */
         .glass-card {
-            background: var(--glass-panel); border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 16px; padding: 25px; margin-bottom: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3); position: relative;
+            background: var(--glass-surface);
+            border: 1px solid var(--glass-border);
+            border-top: 1px solid var(--glass-highlight);
+            border-radius: 24px; 
+            padding: 35px; margin-bottom: 30px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.4); 
+            position: relative; overflow: visible; 
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
         .glass-card::before {
-            content:''; position: absolute; top:0; left:0; width: 4px; height: 100%;
-            background: linear-gradient(to bottom, var(--neon-cyan), var(--neon-blue));
-            border-radius: 16px 0 0 16px; opacity: 0.7;
+            content:''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle at center, rgba(14,165,233,0.03), transparent 60%);
+            pointer-events: none; z-index: 0;
         }
+        .glass-card > * { position: relative; z-index: 1; }
 
-        h2 { font-family: 'Cinzel'; margin-bottom: 20px; color: #fff; display: flex; align-items: center; gap: 10px; font-size: 1.1rem; }
-        h2 i { color: var(--neon-cyan); }
+        h2 { 
+            font-family: 'Outfit'; font-weight: 600; margin-bottom: 25px; 
+            color: #fff; display: flex; align-items: center; gap: 12px; font-size: 1.3rem; 
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+        h2 i { 
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            -webkit-background-clip: text; color: transparent;
+        }
 
         /* --- INPUTS --- */
-        .form-group { margin-bottom: 20px; position: relative; }
-        label { display: block; font-size: 0.75rem; color: #94a3b8; margin-bottom: 8px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
+        .form-group { margin-bottom: 25px; position: relative; }
+        
+        #group-cust { z-index: 1000 !important; }
+
+        label { 
+            display: block; font-size: 0.7rem; color: var(--text-muted); 
+            margin-bottom: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; 
+            padding-left: 5px;
+        }
         
         input, select, textarea {
-            width: 100%; padding: 14px 16px;
-            background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 10px; color: #fff; font-size: 1rem; transition: all 0.3s;
+            width: 100%; padding: 16px 20px;
+            background: rgba(0, 0, 0, 0.4); 
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px; color: #fff; font-size: 1rem; font-family: 'Outfit', sans-serif;
+            transition: all 0.3s ease;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
         }
-        
-        .uppercase-input { text-transform: uppercase; }
+        .uppercase-input { text-transform: uppercase; letter-spacing: 1px; }
 
         input:focus, textarea:focus, select:focus {
-            border-color: var(--neon-cyan); background: rgba(6, 182, 212, 0.05);
-            box-shadow: 0 0 15px rgba(6,182,212,0.15);
+            border-color: var(--accent-blue); 
+            background: rgba(14, 165, 233, 0.05);
+            box-shadow: 0 0 20px rgba(14, 165, 233, 0.2), inset 0 2px 4px rgba(0,0,0,0.3);
+            transform: translateY(-1px);
         }
+        textarea { resize: vertical; min-height: 100px; }
 
-        textarea { resize: vertical; min-height: 80px; font-family: 'Inter', sans-serif; }
-
-        .premium-select { position: relative; cursor: pointer; }
-        .premium-select select { appearance: none; -webkit-appearance: none; cursor: pointer; padding-right: 45px; background:rgb(15, 15, 180); border: 1px solid rgba(6, 182, 212, 0.3); }
+        .premium-select { position: relative; }
+        .premium-select select { appearance: none; -webkit-appearance: none; cursor: pointer; padding-right: 45px; }
         .premium-select::after {
-            content: '\f107'; font-family: 'Font Awesome 6 Free'; font-weight: 900;
-            position: absolute; right: 15px; top: 50%; transform: translateY(-50%);
-            color: var(--neon-cyan); pointer-events: none; transition: transform 0.3s;
+            content: '\f078'; font-family: 'Font Awesome 6 Free'; font-weight: 900;
+            position: absolute; right: 20px; top: 50%; transform: translateY(-50%);
+            color: var(--accent-blue); pointer-events: none; font-size: 0.8rem;
         }
-        .premium-select:hover::after { transform: translateY(-50%) scale(1.2); }
-        .premium-select option { background: #000000; color: rgb(255, 255, 255); padding: 10px; }
+        .premium-select option { background: #0f172a; color: #fff; padding: 15px; }
 
         /* --- MOBILE ITEM CARDS --- */
         .mobile-item-card {
-            background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);
-            border-radius: 12px; padding: 15px; margin-bottom: 15px; position: relative;
+            background: rgba(255,255,255,0.02); 
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px; padding: 20px; margin-bottom: 20px; position: relative;
+            transition: all 0.3s ease;
         }
-        .mobile-item-card.focused { border-color: var(--neon-cyan); box-shadow: 0 0 20px rgba(6,182,212,0.1); background: rgba(6,182,212,0.02); }
-        .mobile-item-card.is-msg { border-color: var(--neon-blue); background: rgba(59, 130, 246, 0.05); }
+        .mobile-item-card.focused { 
+            border-color: var(--accent-blue); 
+            box-shadow: 0 0 25px rgba(14,165,233,0.15); 
+            background: rgba(14,165,233,0.02); 
+        }
+        .mobile-item-card.is-msg { border-color: var(--accent-purple); background: rgba(139, 92, 246, 0.05); }
 
-        .item-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .item-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .btn-del {
             background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3);
-            color: #ef4444; width: 35px; height: 35px; border-radius: 8px;
+            color: #ef4444; width: 32px; height: 32px; border-radius: 50%;
             display: flex; align-items: center; justify-content: center; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-del:hover { background: rgba(239, 68, 68, 0.2); box-shadow: 0 0 10px rgba(239, 68, 68, 0.2); }
+
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
+        .total-display { 
+            text-align: center; color: var(--accent-blue); 
+            font-family: 'Outfit'; font-weight: 700; 
+            display: flex; flex-direction: column; justify-content: center; height: 100%; 
+            background: rgba(14,165,233,0.05); border-radius: 12px; border: 1px dashed rgba(14,165,233,0.3);
         }
 
-        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-        .total-display { text-align: center; color: var(--neon-cyan); font-family: 'Cinzel'; font-weight: bold; display: flex; flex-direction: column; justify-content: center; height: 100%; font-size: 0.9rem; }
-
-        /* --- SUGGESTIONS --- */
+        /* --- SUGGESTIONS (MOBILE & GLOBAL) --- */
         .mobile-suggestions {
-            background: rgba(15, 23, 42, 0.98); border: 1px solid var(--neon-cyan); border-top: none;
-            border-radius: 0 0 10px 10px; max-height: 200px; overflow-y: auto;
-            display: none; margin-top: -2px; position: relative; z-index: 10;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            background-color: #000000 !important; 
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-top: none;
+            border-radius: 0 0 12px 12px; 
+            max-height: 250px; overflow-y: auto;
+            display: none; 
+            margin-top: -5px; 
+            z-index: 9999 !important;
+            box-shadow: 0 15px 40px rgba(0,0,0,1) !important;
         }
-        .suggestion-item { padding: 12px 15px; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; transition: background 0.2s; }
-        .suggestion-item:hover { background: rgba(6, 182, 212, 0.15); }
-        .s-main { font-weight: 600; color: #fff; font-size: 0.95rem; }
-        .s-sub { font-size: 0.75rem; color: #94a3b8; display: flex; justify-content: space-between; margin-top: 3px; }
+        
+        .suggestion-item { 
+            background-color: #000000;
+            padding: 15px 20px; 
+            border-bottom: 1px solid rgba(255,255,255,0.1); 
+            cursor: pointer; 
+            transition: background 0.2s; 
+        }
+        .suggestion-item:hover { background-color: #1e1b4b !important; }
+        
+        .s-main { font-weight: 600; color: #fff; font-size: 0.95rem; margin-bottom: 4px; }
+        .s-sub { font-size: 0.75rem; color: #94a3b8; display: flex; justify-content: space-between; }
 
-        /* --- ADD BUTTON --- */
         .btn-add {
-            width: 100%; padding: 15px; margin-top: 10px;
-            background: rgba(6,182,212,0.05); border: 1px dashed var(--neon-cyan);
-            color: var(--neon-cyan); border-radius: 12px; font-weight: 600; cursor: pointer;
+            width: 100%; padding: 18px; margin-top: 15px;
+            background: rgba(14,165,233,0.05); 
+            border: 1px dashed var(--accent-blue);
+            color: var(--accent-blue); border-radius: 14px; 
+            font-weight: 600; cursor: pointer;
             display: flex; align-items: center; justify-content: center; gap: 10px;
+            transition: all 0.3s;
         }
-        .btn-add:hover { background: rgba(6,182,212,0.15); }
+        .btn-add:hover { background: rgba(14,165,233,0.15); box-shadow: 0 0 20px rgba(14,165,233,0.1); transform: translateY(-2px); }
 
         /* --- FOOTER --- */
         .action-bar {
-            position: fixed; bottom: 0; left: 0; right: 0;
-            background: rgba(2, 6, 23, 0.95); backdrop-filter: blur(15px);
-            border-top: 1px solid var(--border-color); padding: 15px 20px; z-index: 1000;
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            width: 95%; max-width: 1400px;
+            background: rgba(10, 10, 25, 0.85); 
+            backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+            border: 1px solid var(--glass-border); border-top: 1px solid var(--glass-highlight);
+            border-radius: 20px; padding: 15px 30px; z-index: 1000;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.6);
         }
-        .action-inner { max-width: 1600px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
+        .action-inner { display: flex; align-items: center; justify-content: space-between; }
         
-        .footer-totals { 
-            display: grid; 
-            grid-template-columns: auto auto; 
-            gap: 30px; 
-            align-items: center;
+        .footer-totals { display: flex; gap: 40px; align-items: center; }
+        .f-item small { display: block; font-size: 0.65rem; color: var(--text-muted); font-weight: 700; letter-spacing: 1.5px; margin-bottom: 4px; }
+        .f-item span { 
+            font-family: 'Outfit'; font-size: 1.5rem; font-weight: 700;
+            background: linear-gradient(90deg, #fff, var(--accent-blue)); -webkit-background-clip: text; color: transparent;
         }
-        .f-item {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start; 
-        }
-        .f-item small { display: block; font-size: 0.65rem; color: #64748b; font-weight: 700; letter-spacing: 1px; margin-bottom: 2px; }
-        .f-item span { font-family: 'Cinzel'; font-size: 1.2rem; color: var(--neon-cyan); line-height: 1; }
 
-        .footer-btns { display: flex; gap: 10px; }
-        .btn { padding: 12px 25px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; font-size: 0.9rem; transition: transform 0.2s; }
+        .footer-btns { display: flex; gap: 15px; }
+        .btn { 
+            padding: 14px 35px; border-radius: 50px; border: none; 
+            font-weight: 600; cursor: pointer; font-size: 0.95rem; 
+            transition: all 0.3s ease; font-family: 'Outfit';
+        }
         .btn:active { transform: scale(0.96); }
-        .btn-submit { background: linear-gradient(135deg, var(--neon-blue), #2563eb); color: white; box-shadow: 0 0 15px rgba(59,130,246,0.4); }
-        .btn-cancel { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.5); }
-        .btn-ok { background: var(--neon-cyan); color: #020617; box-shadow: 0 0 20px rgba(6,182,212,0.4); }
+        .btn-submit { 
+            background: linear-gradient(135deg, var(--primary-glow), var(--accent-blue)); 
+            color: white; 
+            box-shadow: 0 10px 30px rgba(79, 70, 229, 0.4);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .btn-cancel { background: rgba(255, 255, 255, 0.05); color: #ccc; border: 1px solid rgba(255, 255, 255, 0.1); }
+        .btn-ok { 
+            background: linear-gradient(135deg, var(--accent-blue), #2563eb); 
+            color: #fff; box-shadow: 0 0 20px rgba(14,165,233,0.4); 
+        }
 
         /* --- MODAL SYSTEM --- */
         .modal-overlay {
@@ -221,129 +348,201 @@
         .modal-overlay.open { display: flex; opacity: 1; }
         
         .modal-content {
-            background: linear-gradient(145deg, rgba(15,23,42,0.98), rgba(2,6,23,0.98));
-            border: 1px solid var(--neon-cyan);
-            border-radius: 16px; width: 90%; max-width: 500px;
-            padding: 0; /* Reset padding for internal structure */
-            box-shadow: 0 0 50px rgba(6, 182, 212, 0.15);
-            transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: linear-gradient(160deg, #1e1b4b, #020617);
+            border: 1px solid var(--glass-border);
+            border-top: 1px solid var(--accent-blue);
+            border-radius: 24px; width: 90%; max-width: 550px;
+            padding: 0; 
+            box-shadow: 0 0 80px rgba(79, 70, 229, 0.25);
+            transform: scale(0.95); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             max-height: 85vh; overflow-y: auto; display: flex; flex-direction: column;
         }
         .modal-overlay.open .modal-content { transform: scale(1); }
         
-        /* PREMIUM SUMMARY STYLES */
-        .ps-header {
-            padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.1);
-            text-align: center; background: rgba(255,255,255,0.02);
-        }
-        .ps-header h3 { font-family: 'Cinzel'; color: #fff; margin: 0; font-size: 1.4rem; }
-        .ps-header small { color: var(--neon-cyan); font-size: 0.75rem; letter-spacing: 1px; text-transform: uppercase; }
-
-        .ps-body { padding: 20px; overflow-y: auto; }
-
+        /* PREMIUM SUMMARY */
+        .ps-header { padding: 25px; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: center; }
+        .ps-header h3 { font-family: 'Outfit'; color: #fff; margin: 0; font-size: 1.4rem; letter-spacing: 1px; }
+        .ps-header small { color: var(--accent-blue); font-size: 0.75rem; letter-spacing: 2px; text-transform: uppercase; font-weight: 700; }
+        .ps-body { padding: 25px; overflow-y: auto; }
         .ps-customer-card {
-            background: rgba(6, 182, 212, 0.05); border: 1px solid rgba(6, 182, 212, 0.2);
-            border-radius: 12px; padding: 15px; margin-bottom: 20px;
-            display: flex; gap: 15px; align-items: center;
+            background: rgba(14, 165, 233, 0.08); border: 1px solid rgba(14, 165, 233, 0.2);
+            border-radius: 16px; padding: 20px; margin-bottom: 25px;
+            display: flex; gap: 20px; align-items: center;
         }
         .ps-c-icon { 
-            width: 40px; height: 40px; background: rgba(6,182,212,0.1); border-radius: 50%; 
-            display: flex; align-items: center; justify-content: center; color: var(--neon-cyan);
+            width: 50px; height: 50px; background: rgba(14,165,233,0.15); border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; color: var(--accent-blue);
+            font-size: 1.2rem;
         }
-        .ps-c-info h4 { color: #fff; font-size: 1rem; margin-bottom: 2px; }
-        .ps-c-info p { color: #94a3b8; font-size: 0.8rem; margin: 0; }
-
+        .ps-c-info h4 { color: #fff; font-size: 1.1rem; margin-bottom: 4px; font-weight: 600; }
+        .ps-c-info p { color: #cbd5e1; font-size: 0.85rem; margin: 0; opacity: 0.8; }
         .ps-table-head {
             display: grid; grid-template-columns: 2fr 1fr 1fr;
             font-size: 0.7rem; color: #64748b; font-weight: 700; text-transform: uppercase;
-            padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 10px;
+            padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 15px;
         }
         .ps-item {
             display: grid; grid-template-columns: 2fr 1fr 1fr; align-items: center;
-            padding: 10px 0; border-bottom: 1px dashed rgba(255,255,255,0.1);
+            padding: 12px 0; border-bottom: 1px dashed rgba(255,255,255,0.1);
         }
-        .ps-item:last-child { border-bottom: none; }
-        
-        .ps-i-desc { color: #e2e8f0; font-weight: 500; font-size: 0.9rem; line-height: 1.2; }
-        .ps-i-desc small { display: block; color: #64748b; font-size: 0.7rem; margin-top: 2px; }
-        
-        .ps-i-qty { display: flex; justify-content: center; }
+        .ps-i-desc { color: #f1f5f9; font-weight: 500; font-size: 0.95rem; line-height: 1.3; }
+        .ps-i-desc small { display: block; color: #64748b; font-size: 0.75rem; margin-top: 3px; font-family: monospace; }
         .qty-badge {
-            background: rgba(59, 130, 246, 0.15); color: var(--neon-blue);
-            border: 1px solid rgba(59, 130, 246, 0.3); padding: 2px 10px;
-            border-radius: 20px; font-weight: 700; font-size: 0.85rem; min-width: 40px; text-align: center;
+            background: rgba(79, 70, 229, 0.2); color: #a5b4fc;
+            border: 1px solid rgba(79, 70, 229, 0.3); padding: 4px 12px;
+            border-radius: 20px; font-weight: 700; font-size: 0.8rem; min-width: 40px; text-align: center;
+            margin: 0 auto; display: block; width: fit-content;
         }
-        
-        .ps-i-total { text-align: right; color: #fff; font-weight: 600; }
-
-        .ps-footer {
-            padding: 20px; background: rgba(0,0,0,0.3); border-top: 1px solid rgba(255,255,255,0.1);
-        }
-        .ps-total-row {
-            display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px;
-        }
-        .ps-total-row span:first-child { color: #94a3b8; font-size: 0.9rem; text-transform: uppercase; }
-        .ps-total-val { font-family: 'Cinzel'; font-size: 1.8rem; color: var(--neon-cyan); line-height: 1; text-shadow: 0 0 20px rgba(6,182,212,0.3); }
-
+        .ps-i-total { text-align: right; color: #fff; font-weight: 600; font-family: 'Outfit'; }
+        .ps-footer { padding: 25px; background: rgba(0,0,0,0.2); border-top: 1px solid rgba(255,255,255,0.1); }
+        .ps-total-row { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 25px; }
+        .ps-total-val { font-family: 'Outfit'; font-weight: 700; font-size: 2rem; color: var(--accent-blue); line-height: 1; text-shadow: 0 0 30px rgba(14,165,233,0.4); }
         .ps-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
 
         /* Warning/Error Modal (Red) */
         .modal-content.warning { 
-            border-color: var(--neon-red); box-shadow: 0 0 30px rgba(239, 68, 68, 0.2); 
-            text-align: center; padding: 30px;
+            border-color: #ef4444; box-shadow: 0 0 50px rgba(239, 68, 68, 0.2); 
+            text-align: center; padding: 40px;
         }
-        .warning-icon { font-size: 3rem; color: var(--neon-red); margin-bottom: 15px; }
-        .warning-text { color: #cbd5e1; margin-bottom: 20px; }
+        .warning-icon { font-size: 3.5rem; color: #ef4444; margin-bottom: 20px; text-shadow: 0 0 20px rgba(239, 68, 68, 0.4); }
+        .warning-title { color: #ef4444; font-family:'Outfit'; margin-bottom:10px; text-align: center; width: 100%; display: block; }
+        .warning-text { color: #cbd5e1; margin-bottom: 25px; font-size: 1.1rem; text-align: center; }
 
-        /* Success Popup (Green) */
+        /* Success Popup */
         #successPopup {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.8);
-            background: #020617; border: 2px solid var(--neon-green);
-            padding: 40px; border-radius: 20px; z-index: 10000; text-align: center;
-            box-shadow: 0 0 50px rgba(16, 185, 129, 0.3);
+            background: #020617; border: 2px solid var(--accent-blue);
+            padding: 50px; border-radius: 30px; z-index: 10000; text-align: center;
+            box-shadow: 0 0 80px rgba(14, 165, 233, 0.4);
             display: none; opacity: 0; transition: all 0.4s ease;
         }
         #successPopup.show { display: block; opacity: 1; transform: translate(-50%, -50%) scale(1); }
-        .success-icon { font-size: 4rem; color: var(--neon-green); margin-bottom: 20px; animation: bounce 1s infinite; }
-        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .success-icon { font-size: 4.5rem; color: var(--accent-blue); margin-bottom: 25px; animation: bounce 1s infinite; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
 
-        /* History Styles */
-        .history-item { 
-            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); 
-            padding: 15px; margin-bottom: 10px; border-radius: 8px; text-align: left;
+        /* --- REDESIGNED HISTORY CARD (NEW) --- */
+        .history-card {
+            background: rgba(17, 24, 39, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
         }
-        .h-head { display: flex; justify-content: space-between; color: var(--neon-cyan); font-weight: bold; margin-bottom: 5px; }
-        .h-details { font-size: 0.85rem; color: #aaa; }
+        .h-header {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            margin-bottom: 10px;
+        }
+        .h-cust-name {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700; font-size: 1.1rem;
+            color: var(--accent-blue);
+            margin-bottom: 4px;
+            text-transform: uppercase;
+        }
+        .h-meta-date { color: #94a3b8; font-size: 0.8rem; text-align: right; }
+        .h-meta-total { 
+            color: #fff; font-weight: 700; font-size: 1.2rem; 
+            font-family: 'Outfit', sans-serif; text-align: right;
+        }
+        .status-badge {
+            background: rgba(34, 197, 94, 0.15); 
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            color: #4ade80; 
+            font-size: 0.65rem; font-weight: 700;
+            padding: 4px 10px; border-radius: 6px;
+            display: inline-block; letter-spacing: 1px;
+            margin-bottom: 15px;
+        }
+        .status-badge.pending {
+            background: rgba(139, 92, 246, 0.15); 
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            color: #c4b5fd;
+        }
 
-        @media (min-width: 768px) {
-            .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .h-items-preview {
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 15px;
+        }
+        .h-item-row {
+            display: flex; justify-content: space-between;
+            font-size: 0.9rem; color: #cbd5e1;
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .h-item-row:last-child { border-bottom: none; }
+        .h-item-qty {
+            background: rgba(139, 92, 246, 0.2); color: #c4b5fd;
+            padding: 2px 8px; border-radius: 6px; font-weight: 700; font-size: 0.75rem;
+        }
+        .h-actions {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 15px;
+        }
+        .btn-h-del {
+            background: transparent; border: 1px solid rgba(255,255,255,0.1);
+            color: #94a3b8; border-radius: 8px; padding: 10px;
+            font-size: 0.8rem; font-weight: 600; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-h-del:hover { border-color: #ef4444; color: #ef4444; background: rgba(239, 68, 68, 0.1); }
+        
+        .btn-h-mod {
+            background: transparent; border: 1px solid var(--accent-blue);
+            color: var(--accent-blue); border-radius: 8px; padding: 10px;
+            font-size: 0.8rem; font-weight: 600; cursor: pointer;
+            transition: all 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-h-mod:hover { background: rgba(14, 165, 233, 0.15); box-shadow: 0 0 15px rgba(14, 165, 233, 0.2); }
+
+        /* --- MEDIA QUERIES --- */
+        @media (min-width: 1024px) {
+            .desktop-wrapper {
+                grid-template-columns: 1fr 350px; 
+                gap: 40px;
+                align-items: start;
+            }
+            #desktopSuggestionsPanel { display: flex !important; transform: none !important; }
             .mobile-suggestions { display: none !important; }
+            .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
         }
-        @media (max-width: 767px) {
+
+        @media (max-width: 1023px) {
             #desktopSuggestionsPanel { display: none !important; }
-            .main-container { padding: 10px; padding-bottom: 400px; }
-            .glass-card { padding: 15px; }
+            .main-container { padding: 15px; padding-bottom: 150px; margin-top: 100px; }
+            .glass-card { padding: 20px; }
+            header { width: 100%; top: 0; border-radius: 0; border-top: none; border-left: none; border-right: none; }
+            .action-bar { width: 100%; bottom: 0; border-radius: 0; border-bottom: none; }
         }
     </style>
 </head>
 <body>
+    <div class="ambient-orb"></div> 
+    
+    <div id="netStatus" title="Network Status"></div>
+    
+    <div id="pendingBadge">0 Sync Pending</div>
+
     <div id="loader">
         <div class="spinner"></div>
-        <div style="margin-top: 20px; color: var(--neon-cyan); font-family: 'Cinzel'; font-size: 1.2rem;">LOADING PORTAL</div>
+        <div id="loaderText" style="margin-top: 25px; color: var(--text-main); font-family: 'Outfit'; font-size: 1.1rem; letter-spacing: 2px; text-transform: uppercase;">Initializing System</div>
     </div>
 
     <div id="successPopup">
         <div class="success-icon"><i class="fa-solid fa-circle-check"></i></div>
-        <h2 style="color:#fff; font-family:'Cinzel'; margin-bottom:10px;">ORDER CONFIRMED</h2>
-        <p style="color:#94a3b8;">Saved & Resetting...</p>
+        <h2 id="successTitle" style="color:#fff; font-family:'Outfit'; margin-bottom:10px;">ORDER CONFIRMED</h2>
+        <p id="successSub" style="color:#94a3b8;">Processing...</p>
     </div>
 
     <div id="alertModal" class="modal-overlay">
         <div class="modal-content warning">
             <div class="warning-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
-            <h2 style="color:var(--neon-red); font-family:'Cinzel'; margin-bottom:10px;">ATTENTION</h2>
+            <h2 class="warning-title">ATTENTION</h2>
             <p id="alertMessage" class="warning-text"></p>
-            <button class="btn btn-cancel" onclick="closeModal('alertModal')" style="width:100%">OK, I UNDERSTAND</button>
+            <button class="btn btn-cancel" onclick="closeModal('alertModal')" style="width:100%; border-color:#ef4444; color:#ef4444;">ACKNOWLEDGE</button>
         </div>
     </div>
 
@@ -351,21 +550,17 @@
         <div class="modal-content">
             <div class="ps-header">
                 <h3>INVOICE PREVIEW</h3>
-                <small>Verify details before saving</small>
+                <small>Verify Order Details</small>
             </div>
             
             <div class="ps-body">
-                <div id="psCustomer" class="ps-customer-card">
-                    </div>
-
+                <div id="psCustomer" class="ps-customer-card"></div>
                 <div class="ps-table-head">
                     <div>Description</div>
                     <div style="text-align:center">Qty</div>
                     <div style="text-align:right">Amount</div>
                 </div>
-
-                <div id="psItemsList">
-                    </div>
+                <div id="psItemsList"></div>
             </div>
 
             <div class="ps-footer">
@@ -382,14 +577,13 @@
     </div>
 
     <div id="historyModal" class="modal-overlay">
-        <div class="modal-content" style="max-width:600px; padding:20px;">
-            <div class="modal-header" style="text-align:center; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:10px; margin-bottom:10px; font-family:'Cinzel'; color:var(--neon-cyan);">
-                RECENT ORDER HISTORY
+        <div class="modal-content" style="max-width:600px; padding:20px; background: #0b0f19;">
+            <div id="historyModalTitle" class="modal-header" style="text-align:center; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:15px; margin-bottom:15px; font-family:'Outfit'; color:var(--accent-blue); font-size:1.2rem; font-weight:700;">
+                ORDER HISTORY
             </div>
-            <div style="text-align: center; color: #64748b; font-size: 0.8rem; margin-bottom: 15px;">(Read Only View)</div>
             <div id="historyContent">Loading...</div>
-            <div class="modal-actions">
-                <button class="btn btn-cancel" onclick="closeModal('historyModal')">CLOSE PANEL</button>
+            <div class="modal-actions" style="margin-top: 20px;">
+                <button class="btn btn-cancel" onclick="closeModal('historyModal')" style="width:100%">CLOSE PANEL</button>
             </div>
         </div>
     </div>
@@ -398,22 +592,16 @@
         <div class="brand" ondblclick="location.reload()" title="Double Tap to Reset">
             <i class="fa-solid fa-cube"></i> NEW ORDER
         </div>
-        <div class="date-badge" id="currentDate"></div>
+        <div class="date-badge" id="currentDate" ondblclick="showPendingOrders()" title="Double Tap to View Pending"></div>
     </header>
-
-    <aside id="desktopSuggestionsPanel">
-        <div class="sidebar-header">
-            <span><i class="fa-solid fa-lightbulb"></i> SUGGESTIONS</span>
-        </div>
-        <div id="desktopSuggestionsContent"></div>
-    </aside>
 
     <div class="main-container">
         <div class="desktop-wrapper">
+            
             <div class="content-area">
                 
                 <div class="glass-card">
-                    <h2><i class="fa-solid fa-user-check"></i> Customer Details</h2>
+                    <h2><i class="fa-solid fa-user-astronaut"></i> Customer Profile</h2>
                     
                     <div class="grid-2">
                         <div class="form-group" id="group-cust">
@@ -424,7 +612,7 @@
                         
                         <div class="form-group">
                             <label>Customer Code</label>
-                            <input type="text" id="custCode" style="color:var(--neon-cyan); font-weight:600;" autocomplete="off">
+                            <input type="text" id="custCode" style="color:var(--accent-blue); font-weight:600;" autocomplete="off">
                         </div>
                     </div>
 
@@ -435,7 +623,7 @@
 
                     <div class="grid-2">
                         <div class="form-group">
-                            <label>Mobile</label>
+                            <label>Mobile Contact</label>
                             <input type="text" id="custMobile" autocomplete="off">
                         </div>
                         <div class="form-group">
@@ -450,14 +638,22 @@
                 </div>
 
                 <div class="glass-card">
-                    <h2><i class="fa-solid fa-cart-shopping"></i> Order Items</h2>
+                    <h2><i class="fa-solid fa-layer-group"></i> Order Items</h2>
                     <div id="itemsContainer"></div>
                     <button class="btn-add" id="btnAddRow">
-                        <i class="fa-solid fa-plus-circle"></i> ADD NEW LINE
+                        <i class="fa-solid fa-circle-plus"></i> ADD NEW LINE
                     </button>
                 </div>
 
             </div>
+
+            <aside id="desktopSuggestionsPanel">
+                <div class="sidebar-header">
+                    <span><i class="fa-solid fa-bolt"></i> SMART SUGGESTIONS</span>
+                </div>
+                <div id="desktopSuggestionsContent"></div>
+            </aside>
+
         </div>
     </div>
 
@@ -465,7 +661,7 @@
         <div class="action-inner">
             <div class="footer-totals">
                 <div class="f-item">
-                    <small>ITEM COUNT</small>
+                    <small>TOTAL ITEMS</small>
                     <span id="totalQty">0</span>
                 </div>
                 <div class="f-item">
@@ -480,8 +676,40 @@
     </div>
 
     <script type="module">
+        // --- SERVICE WORKER REGISTRATION ---
+        /* ================================
+           OFFLINE ORDER STORAGE ENGINE
+        ================================ */
+
+        const OFFLINE_KEY = "offlineOrdersQueue";
+
+        function getOfflineOrders(){
+            return JSON.parse(localStorage.getItem(OFFLINE_KEY) || "[]");
+        }
+
+        function setOfflineOrders(arr){
+            localStorage.setItem(OFFLINE_KEY, JSON.stringify(arr));
+        }
+
+        function pushOfflineOrder(order){
+            const q = getOfflineOrders();
+            q.push(order);
+            setOfflineOrders(q);
+            updatePendingBadge();
+        }
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').then(registration => {
+                    console.log('SW registered:', registration.scope);
+                }).catch(err => {
+                    console.log('SW registration failed:', err);
+                });
+            });
+        }
+
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-        import { getFirestore, collection, getDocs, addDoc, serverTimestamp, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, addDoc, serverTimestamp, query, orderBy, limit, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
         import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
         // FIREBASE CONFIG
@@ -503,68 +731,68 @@
         // STATE
         let customersData = [];
         let itemsData = [];
-        const isMobile = () => window.innerWidth < 768;
+        const isMobile = () => window.innerWidth < 1024; 
 
         document.getElementById('currentDate').innerText = new Date().toLocaleDateString();
 
-        // --- FORCE RESET ON LOAD TO FIX PERSISTENCE ---
+        // --- REAL-TIME NETWORK DETECTOR ---
+        function updateNetworkStatus() {
+            const statusEl = document.getElementById('netStatus');
+
+            if (navigator.onLine) {
+                // USER IS ONLINE -> GREEN
+                statusEl.classList.remove('offline');
+                statusEl.style.backgroundColor = "#22c55e";
+                statusEl.style.boxShadow = "0 0 15px #22c55e";
+                statusEl.title = "Online";
+
+                processOfflineQueue();
+            } else {
+                // USER IS OFFLINE -> RED
+                statusEl.classList.add('offline');
+                statusEl.style.backgroundColor = "#ef4444";
+                statusEl.style.boxShadow = "0 0 15px #ef4444";
+                statusEl.title = "Offline";
+            }
+        }
+
+        
+        // Listeners for real-time changes
+        window.addEventListener('online', updateNetworkStatus);
+        window.addEventListener('offline', updateNetworkStatus);
+        
+        // Execute immediately on load
+        updateNetworkStatus();
+
+        // --- GLOBAL CLICK LISTENER: CLOSE SUGGESTIONS ---
+        document.addEventListener('click', function(event) {
+            const target = event.target;
+            const isInput = target.tagName === 'INPUT';
+            const isSuggestionBox = target.closest('.mobile-suggestions');
+            
+            if (!isInput && !isSuggestionBox) {
+                document.querySelectorAll('.mobile-suggestions').forEach(el => {
+                    el.style.display = 'none';
+                });
+            }
+        });
+
+        // --- RESET FORM ---
         function resetForm() {
             document.querySelectorAll('input').forEach(i => i.value = '');
             const repSel = document.getElementById('repSelect');
             if(repSel) repSel.selectedIndex = 0;
-            document.getElementById('itemsContainer').innerHTML = ''; // Clear items
+            const savedRep = localStorage.getItem('lastRep');
+            if(savedRep && repSel) repSel.value = savedRep;
+            document.getElementById('itemsContainer').innerHTML = ''; 
             document.getElementById('totalQty').innerText = '0';
             document.getElementById('grandTotal').innerText = '0.00';
-            // We will re-add one empty row after loading data
+            addItemRow(); 
+            updatePendingBadge();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        window.addEventListener('load', resetForm);
-
-        // --- GLOBAL KEY NAVIGATION & ENTER LOGIC ---
-        document.addEventListener('keydown', (e) => {
-            if(e.key === 'Enter') {
-                const current = e.target;
-
-                // SPECIAL "SAVE" COMMAND IN CUST CODE
-                if(current.id === 'custCode' && current.value.trim().toLowerCase() === 'save') {
-                    e.preventDefault();
-                    current.value = ''; 
-                    fetchHistory(); 
-                    return;
-                }
-
-                e.preventDefault();
-                
-                // 1. MG COMMAND
-                if(current.classList.contains('i-code') && current.value.toLowerCase() === 'mg') {
-                    transformToMsgBox(current);
-                    return;
-                }
-
-                // 2. NAVIGATE & AUTO-CLEAR
-                const focusable = Array.from(document.querySelectorAll('input:not([type=hidden]):not([disabled]), select, textarea'));
-                const index = focusable.indexOf(current);
-                
-                if (index > -1 && index < focusable.length - 1) {
-                    const next = focusable[index + 1];
-                    next.focus();
-                    if (next.value === '0.00' || next.value === '0') next.value = '';
-                } else {
-                    // 3. AUTO ADD NEW LINE
-                    const lastCard = document.querySelector('#itemsContainer').lastElementChild;
-                    if (lastCard && lastCard.contains(current) && current.classList.contains('i-price')) {
-                        addItemRow();
-                        setTimeout(() => {
-                            const newLast = document.querySelector('#itemsContainer').lastElementChild;
-                            const newCode = newLast.querySelector('.i-code');
-                            if(newCode) newCode.focus();
-                        }, 50);
-                    }
-                }
-            }
-        });
-
-        // --- MODAL UTILS ---
+        // --- UI UTILS ---
         window.closeModal = (id) => {
             document.getElementById(id).classList.remove('open');
         };
@@ -582,11 +810,90 @@
             });
         });
 
-        // --- HISTORY / PREVIEW LOGIC ---
-        window.fetchHistory = async () => {
+        // --- PENDING ORDERS LOGIC (LOCAL STORAGE) ---
+        window.showPendingOrders = () => {
             const modal = document.getElementById('historyModal');
             const content = document.getElementById('historyContent');
+            const title = document.getElementById('historyModalTitle');
+            
             modal.classList.add('open');
+            title.innerText = "PENDING UPLOADS (OFFLINE)";
+            
+            const queue = getOfflineOrders();
+            
+            if (queue.length === 0) {
+                content.innerHTML = '<div style="text-align:center; padding:20px; color:#94a3b8;">No pending orders in local storage.</div>';
+                return;
+            }
+
+            let html = '';
+            queue.forEach((data, index) => {
+                const date = data.date || 'N/A';
+                const itemsStr = data.items.map(i => {
+                    if(i.code === 'MSG') return `<div class="h-item-row"><span style="color:var(--accent-purple); font-style:italic;">${i.desc}</span></div>`;
+                    return `<div class="h-item-row"><span>${i.desc}</span><span class="h-item-qty">X ${i.qty}</span></div>`;
+                }).join('');
+
+                html += `
+                    <div class="history-card" style="border-color:var(--accent-purple)">
+                        <div class="h-header">
+                            <div>
+                                <div class="h-cust-name">${data.customer.name}</div>
+                                <div class="status-badge pending">WAITING SYNC</div>
+                            </div>
+                            <div>
+                                <div class="h-meta-date">${date}</div>
+                                <div class="h-meta-total">${data.grandTotal.toFixed(2)}</div>
+                            </div>
+                        </div>
+                        <div class="h-items-preview">${itemsStr}</div>
+                        <div class="h-actions">
+                            <button class="btn-h-del" onclick="deletePendingOrder(${index})">
+                                <i class="fa-solid fa-trash"></i> DELETE
+                            </button>
+                            <button class="btn-h-mod" onclick="syncPending()">
+                                <i class="fa-solid fa-rotate"></i> FORCE SYNC
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            content.innerHTML = html;
+        };
+
+        window.deletePendingOrder = (index) => {
+            if(!confirm("Delete this offline order?")) return;
+            const queue = getOfflineOrders();
+            queue.splice(index, 1);
+            setOfflineOrders(queue);
+            showPendingOrders(); // Refresh view
+            updatePendingBadge();
+        };
+
+        window.syncPending = () => {
+            if(!navigator.onLine) {
+                showAlert("Still offline. Cannot sync.");
+                return;
+            }
+            closeModal('historyModal');
+            processOfflineQueue();
+        };
+
+
+        // --- HISTORY LOGIC (FIREBASE) ---
+        let loadedHistoryOrders = []; 
+
+        window.fetchHistory = async () => {
+            if(!navigator.onLine) {
+                showAlert("History is only available when online.");
+                return;
+            }
+            const modal = document.getElementById('historyModal');
+            const content = document.getElementById('historyContent');
+            const title = document.getElementById('historyModalTitle');
+            
+            modal.classList.add('open');
+            title.innerText = "ORDER HISTORY (ONLINE)";
             content.innerHTML = '<div style="text-align:center"><div class="spinner"></div><br>Fetching Records...</div>';
 
             try {
@@ -594,40 +901,121 @@
                 const snapshot = await getDocs(q);
                 
                 if (snapshot.empty) {
-                    content.innerHTML = '<div style="text-align:center; padding:20px;">No history available.</div>';
+                    content.innerHTML = '<div style="text-align:center; padding:20px; color:#94a3b8;">No history available.</div>';
                     return;
                 }
 
+                loadedHistoryOrders = [];
                 let html = '';
                 snapshot.forEach(docSnap => {
                     const data = docSnap.data();
+                    const docId = docSnap.id;
+                    loadedHistoryOrders.push({ id: docId, ...data });
+                    
                     const date = data.date || 'N/A';
                     
                     const itemsStr = data.items.map(i => {
-                        if(i.code === 'MSG') return `<div><em>Msg: ${i.desc}</em></div>`;
-                        return `<div>${i.code} x ${i.qty} = ${i.total.toFixed(2)}</div>`;
+                        if(i.code === 'MSG') return `<div class="h-item-row"><span style="color:var(--accent-purple); font-style:italic;">${i.desc}</span></div>`;
+                        return `
+                            <div class="h-item-row">
+                                <span>${i.desc}</span>
+                                <span class="h-item-qty">X ${i.qty}</span>
+                            </div>
+                        `;
                     }).join('');
 
                     html += `
-                        <div class="history-item">
-                            <div class="h-head">
-                                <span>${data.customer.name}</span>
-                                <span>${data.grandTotal.toFixed(2)}</span>
+                        <div class="history-card" id="card-${docId}">
+                            <div class="h-header">
+                                <div>
+                                    <div class="h-cust-name">${data.customer.name}</div>
+                                    <div class="status-badge">UPLOADED</div>
+                                </div>
+                                <div>
+                                    <div class="h-meta-date">${date}</div>
+                                    <div class="h-meta-total">${data.grandTotal.toFixed(2)}</div>
+                                </div>
                             </div>
-                            <div class="h-details">
-                                Date: ${date} | Code: ${data.customer.code}
-                            </div>
-                            <div style="margin:10px 0; border-left:2px solid var(--neon-cyan); padding-left:10px; font-size:0.85rem;">
+                            
+                            <div class="h-items-preview">
                                 ${itemsStr}
+                            </div>
+
+                            <div class="h-actions">
+                                <button class="btn-h-del" onclick="deleteOrder('${docId}')">
+                                    <i class="fa-solid fa-trash"></i> DELETE
+                                </button>
+                                <button class="btn-h-mod" onclick="modifyOrder('${docId}')">
+                                    <i class="fa-solid fa-pen-to-square"></i> MODIFY / RE-ORDER
+                                </button>
                             </div>
                         </div>
                     `;
                 });
                 content.innerHTML = html;
-
             } catch (e) {
-                content.innerHTML = `Error: ${e.message}`;
+                content.innerHTML = `<div style="text-align:center; color:#ef4444;">Error loading history: ${e.message}</div>`;
             }
+        };
+
+        // --- DELETE ORDER ---
+        window.deleteOrder = async (docId) => {
+            if(!confirm("Are you sure you want to delete this order permanently?")) return;
+            
+            const card = document.getElementById(`card-${docId}`);
+            if(card) card.style.opacity = '0.5';
+
+            try {
+                await deleteDoc(doc(db, "orders", docId));
+                if(card) card.remove();
+                if(document.querySelectorAll('.history-card').length === 0) {
+                    document.getElementById('historyContent').innerHTML = '<div style="text-align:center; padding:20px; color:#94a3b8;">No history available.</div>';
+                }
+            } catch (e) {
+                alert("Failed to delete: " + e.message);
+                if(card) card.style.opacity = '1';
+            }
+        };
+
+        // --- MODIFY ORDER ---
+        window.modifyOrder = (docId) => {
+            const order = loadedHistoryOrders.find(o => o.id === docId);
+            if(!order) return;
+
+            closeModal('historyModal');
+
+            document.getElementById('customerInput').value = order.customer.name;
+            document.getElementById('custCode').value = order.customer.code;
+            document.getElementById('custAddress').value = order.customer.address;
+            document.getElementById('custMobile').value = order.customer.mobile;
+            
+            const repSel = document.getElementById('repSelect');
+            if(repSel) repSel.value = order.rep;
+
+            document.getElementById('itemsContainer').innerHTML = '';
+
+            order.items.forEach(item => {
+                if(item.code === 'MSG') {
+                    addItemRow();
+                    const lastRow = document.querySelector('#itemsContainer').lastElementChild;
+                    const input = lastRow.querySelector('.i-code');
+                    transformToMsgBox(input);
+                    const ta = lastRow.querySelector('textarea');
+                    if(ta) ta.value = item.desc;
+
+                } else {
+                    addItemRow();
+                    const lastRow = document.querySelector('#itemsContainer').lastElementChild;
+                    const inputs = lastRow.querySelectorAll('input');
+                    inputs[0].value = item.code;
+                    inputs[1].value = item.desc;
+                    inputs[2].value = item.qty;
+                    inputs[3].value = item.price;
+                    lastRow.querySelector('.i-total').innerText = item.total.toFixed(2);
+                }
+            });
+            calcTotal();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         };
 
         function transformToMsgBox(inputEl) {
@@ -635,7 +1023,7 @@
             card.classList.add('is-msg');
             card.innerHTML = `
                 <div class="item-header">
-                    <div style="flex:1; color: var(--neon-blue); font-weight:bold;">
+                    <div style="flex:1; color: var(--accent-purple); font-weight:bold;">
                         <i class="fa-solid fa-comment-dots"></i> SPECIAL MESSAGE
                     </div>
                     <div onclick="this.closest('.mobile-item-card').remove(); calcTotal();" class="btn-del">
@@ -656,50 +1044,81 @@
 
         // --- DATA LOADING ---
         async function loadData() {
-            try {
-                const snap = await get(child(ref(rtdb), "encryption_keys"));
-                if(!snap.exists()) throw new Error("Key fetch failed");
-                const keys = snap.val();
-                
-                const keyHex = CryptoJS.enc.Hex.parse(keys.itemsKey || keys.key);
-                const ivHex = CryptoJS.enc.Hex.parse(keys.itemsIv || keys.iv);
+            const cachedCust = localStorage.getItem('db_customers');
+            const cachedItems = localStorage.getItem('db_items');
+            const cachedReps = localStorage.getItem('db_reps');
 
-                const decrypt = async (file) => {
-                    const res = await fetch(`https://raw.githubusercontent.com/prabod-arpico/New-Order/refs/heads/main/database/${file}`);
-                    const buff = await res.arrayBuffer();
-                    const wa = CryptoJS.lib.WordArray.create(buff);
-                    const dec = CryptoJS.AES.decrypt(
-                        { ciphertext: wa }, keyHex, 
-                        { iv: ivHex, mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.Pkcs7 }
-                    );
-                    return JSON.parse(dec.toString(CryptoJS.enc.Utf8));
-                };
-
-                const [rawCust, rawItm, rawReps] = await Promise.all([
-                    decrypt("Customer.json.enc"),
-                    decrypt("Items.json.enc"),
-                    getDocs(collection(db, "reps"))
-                ]);
-
-                customersData = normalize(rawCust, 'customer');
-                itemsData = normalize(rawItm, 'item');
-
-                const repSel = document.getElementById('repSelect');
-                const reps = [];
-                rawReps.forEach(d => reps.push(d.data().name));
-                reps.sort().forEach(r => {
-                    const opt = document.createElement('option');
-                    opt.value = opt.text = r;
-                    repSel.appendChild(opt);
-                });
-
+            if(cachedCust && cachedItems) {
+                customersData = JSON.parse(cachedCust);
+                itemsData = JSON.parse(cachedItems);
+                populateReps(cachedReps ? JSON.parse(cachedReps) : []);
                 document.getElementById('loader').style.display = 'none';
-                addItemRow(); // Add first row only after load
-                
-            } catch (e) {
-                showAlert("Error loading data: " + e.message);
-                document.getElementById('loader').style.display = 'none';
+                resetForm();
             }
+
+            if(navigator.onLine) {
+                try {
+                    const snap = await get(child(ref(rtdb), "encryption_keys"));
+                    if(!snap.exists()) throw new Error("Key fetch failed");
+                    const keys = snap.val();
+                    
+                    const keyHex = CryptoJS.enc.Hex.parse(keys.itemsKey || keys.key);
+                    const itemsIv = keys.itemsIv || keys.iv; 
+                    const ivHex = CryptoJS.enc.Hex.parse(itemsIv);
+
+                    const decrypt = async (file) => {
+                        const res = await fetch(`https://raw.githubusercontent.com/prabod-arpico/New-Order/refs/heads/main/database/${file}`);
+                        const buff = await res.arrayBuffer();
+                        const wa = CryptoJS.lib.WordArray.create(buff);
+                        const dec = CryptoJS.AES.decrypt(
+                            { ciphertext: wa }, keyHex, 
+                            { iv: ivHex, mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.Pkcs7 }
+                        );
+                        return JSON.parse(dec.toString(CryptoJS.enc.Utf8));
+                    };
+
+                    const [rawCust, rawItm, rawReps] = await Promise.all([
+                        decrypt("Customer.json.enc"),
+                        decrypt("Items.json.enc"),
+                        getDocs(collection(db, "reps"))
+                    ]);
+
+                    customersData = normalize(rawCust, 'customer');
+                    itemsData = normalize(rawItm, 'item');
+                    
+                    const repList = [];
+                    rawReps.forEach(d => repList.push(d.data().name));
+                    
+                    localStorage.setItem('db_customers', JSON.stringify(customersData));
+                    localStorage.setItem('db_items', JSON.stringify(itemsData));
+                    localStorage.setItem('db_reps', JSON.stringify(repList));
+
+                    populateReps(repList);
+
+                    document.getElementById('loader').style.display = 'none';
+                    if(!cachedCust) resetForm();
+
+                } catch (e) {
+                    console.error("Online fetch failed, relying on cache", e);
+                    if(!cachedCust) {
+                        showAlert("Error loading data (Offline and no cache): " + e.message);
+                        document.getElementById('loader').style.display = 'none';
+                    }
+                }
+            } else if (!cachedCust) {
+                 document.getElementById('loaderText').innerText = "OFFLINE - NO DATA CACHED";
+                 showAlert("You are offline. Please connect once to download data.");
+            }
+        }
+
+        function populateReps(repsArr) {
+            const repSel = document.getElementById('repSelect');
+            repSel.innerHTML = '<option value="">Select Representative...</option>';
+            repsArr.sort().forEach(r => {
+                const opt = document.createElement('option');
+                opt.value = opt.text = r;
+                repSel.appendChild(opt);
+            });
         }
 
         function normalize(data, type) {
@@ -723,14 +1142,41 @@
             });
         }
 
-        loadData();
+        // --- KEY LISTENERS ---
+        document.addEventListener('keydown', (e) => {
+            if(e.key === 'Enter') {
+                const current = e.target;
+                if(current.id === 'custCode' && current.value.trim().toLowerCase() === 'save') {
+                    e.preventDefault(); current.value = ''; fetchHistory(); return;
+                }
+                e.preventDefault();
+                if(current.classList.contains('i-code') && current.value.toLowerCase() === 'mg') {
+                    transformToMsgBox(current); return;
+                }
+                const focusable = Array.from(document.querySelectorAll('input:not([type=hidden]):not([disabled]), select, textarea'));
+                const index = focusable.indexOf(current);
+                if (index > -1 && index < focusable.length - 1) {
+                    const next = focusable[index + 1]; next.focus();
+                    if (next.value === '0.00' || next.value === '0') next.value = '';
+                } else {
+                    const lastCard = document.querySelector('#itemsContainer').lastElementChild;
+                    if (lastCard && lastCard.contains(current) && current.classList.contains('i-price')) {
+                        addItemRow();
+                        setTimeout(() => {
+                            const newLast = document.querySelector('#itemsContainer').lastElementChild;
+                            const newCode = newLast.querySelector('.i-code');
+                            if(newCode) newCode.focus();
+                        }, 50);
+                    }
+                }
+            }
+        });
 
         // --- UI LOGIC ---
-
         function handleMobileFocus(element) {
             if(!isMobile()) return;
             setTimeout(() => {
-                const headerOffset = 80;
+                const headerOffset = 90;
                 const elementPosition = element.getBoundingClientRect().top;
                 const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
                 window.scrollTo({ top: offsetPosition, behavior: "smooth" });
@@ -742,60 +1188,30 @@
             }, 300);
         }
 
-        function toggleDesktopPanel(show, contentHTML = "") {
-            const panel = document.getElementById('desktopSuggestionsPanel');
-            const body = document.body;
-            if(!panel) return;
-
-            if (show && !isMobile()) {
-                document.getElementById('desktopSuggestionsContent').innerHTML = contentHTML;
-                panel.classList.add('active');
-                body.classList.add('sidebar-open');
-            } else {
-                panel.classList.remove('active');
-                body.classList.remove('sidebar-open');
-            }
+        function toggleDesktopPanel(htmlContent) {
+            const content = document.getElementById('desktopSuggestionsContent');
+            if(content) content.innerHTML = htmlContent;
         }
 
-        document.addEventListener('click', (e) => {
-            if(!e.target.closest('input') && !e.target.closest('#desktopSuggestionsPanel')) {
-                toggleDesktopPanel(false);
-            }
-        });
-
-        // --- CUSTOMER SEARCH ---
+        // Search Handlers
         const custInput = document.getElementById('customerInput');
-        
         custInput.addEventListener('dblclick', () => {
-            custInput.value = '';
-            document.getElementById('custCode').value = '';
-            document.getElementById('custAddress').value = '';
-            document.getElementById('custMobile').value = '';
+            custInput.value = ''; document.getElementById('custCode').value = '';
+            document.getElementById('custAddress').value = ''; document.getElementById('custMobile').value = '';
         });
-
         custInput.addEventListener('focus', () => {
-            handleMobileFocus(custInput);
-            renderSuggestions(custInput.value, 'customer');
+            handleMobileFocus(custInput); renderSuggestions(custInput.value, 'customer');
         });
-
         custInput.addEventListener('input', (e) => {
             const val = e.target.value;
-            if(!val) {
-                document.getElementById('custCode').value = '';
-                document.getElementById('custAddress').value = '';
-                document.getElementById('custMobile').value = '';
-            }
             const exact = customersData.find(c => c.code.toLowerCase() === val.toLowerCase() || c.name.toLowerCase() === val.toLowerCase());
-            if(exact) {
-                selectCustomer(exact);
-            }
+            if(exact) selectCustomer(exact);
             renderSuggestions(val, 'customer');
         });
 
         function renderSuggestions(query, type, contextEl = null) {
             let matches = [];
             const q = query.toLowerCase();
-
             if (type === 'customer') {
                 matches = customersData.filter(c => c.name.toLowerCase().includes(q) || c.code.toLowerCase().includes(q)).slice(0, 20);
             } else {
@@ -804,14 +1220,9 @@
 
             const html = matches.length ? matches.map(m => {
                 if (type === 'customer') {
-                    return `<div class="suggestion-item">
-                        <div class="s-main">${m.name}</div>
-                        <div class="s-sub"><span>${m.address}</span><span>${m.code}</span></div>
-                    </div>`;
+                    return `<div class="suggestion-item"><div class="s-main">${m.name}</div><div class="s-sub"><span>${m.address}</span><span>${m.code}</span></div></div>`;
                 } else {
-                    return `<div class="suggestion-item">
-                        <div class="s-main">${m.code} <br> ↪ ${m.desc} </div>
-                    </div>`;
+                    return `<div class="suggestion-item"><div class="s-main">${m.code} <br> ↪ ${m.desc} </div></div>`;
                 }
             }).join('') : '<div style="padding:20px; text-align:center; color:#64748b;">No matches found</div>';
 
@@ -820,21 +1231,20 @@
                     el.addEventListener('click', () => {
                         if(type === 'customer') selectCustomer(matches[idx]);
                         else selectItem(matches[idx], contextEl);
-                        if(isMobile()) container.style.display = 'none';
-                        else toggleDesktopPanel(false);
+                        
+                        if(container.classList.contains('mobile-suggestions')) {
+                            container.style.display = 'none';
+                        }
                     });
                 });
             };
 
             if (isMobile()) {
-                const target = type === 'customer' ? 
-                    document.getElementById('mobile-cust-suggestions') : 
-                    contextEl.parentNode.querySelector('.mobile-suggestions');
-                target.innerHTML = html;
-                target.style.display = matches.length ? 'block' : 'none';
+                const target = type === 'customer' ? document.getElementById('mobile-cust-suggestions') : contextEl.parentNode.querySelector('.mobile-suggestions');
+                target.innerHTML = html; target.style.display = matches.length ? 'block' : 'none';
                 attachListeners(target);
             } else {
-                toggleDesktopPanel(true, html);
+                toggleDesktopPanel(html);
                 attachListeners(document.getElementById('desktopSuggestionsContent'));
             }
         }
@@ -851,20 +1261,13 @@
         window.selectItem = (item, inputElement) => {
             const card = inputElement.closest('.mobile-item-card');
             const inputs = card.querySelectorAll('input');
-            
-            inputs[0].value = item.code;
-            inputs[1].value = item.desc;
-            inputs[3].value = item.price.toFixed(2);
+            inputs[0].value = item.code; inputs[1].value = item.desc; inputs[3].value = item.price.toFixed(2);
             inputs[0].dataset.lastValid = item.code;
             calcRow(card);
-            
-            inputs[2].focus();
-            if(inputs[2].value === '0') inputs[2].value = '';
+            inputs[2].focus(); if(inputs[2].value === '0') inputs[2].value = '';
         };
 
-        // --- DYNAMIC ITEMS ---
         const itemsContainer = document.getElementById('itemsContainer');
-
         window.addItemRow = () => {
             const div = document.createElement('div');
             div.className = 'mobile-item-card fade-in';
@@ -872,12 +1275,10 @@
                 <div class="item-header">
                     <div style="flex:1">
                         <label>Item Code</label>
-                        <input type="text" class="i-code uppercase-input" placeholder="Search Code/Name" autocomplete="off">
+                        <input type="text" class="i-code uppercase-input" placeholder="Search" autocomplete="off">
                         <div class="mobile-suggestions"></div>
                     </div>
-                    <div onclick="this.closest('.mobile-item-card').remove(); calcTotal();" class="btn-del">
-                        <i class="fa-solid fa-trash"></i>
-                    </div>
+                    <div onclick="this.closest('.mobile-item-card').remove(); calcTotal();" class="btn-del"><i class="fa-solid fa-trash"></i></div>
                 </div>
                 <div class="form-group">
                     <label>Description</label>
@@ -885,18 +1286,9 @@
                     <div class="mobile-suggestions"></div>
                 </div>
                 <div class="grid-3">
-                    <div class="form-group">
-                        <label>Qty</label>
-                        <input type="number" class="i-qty" placeholder="0">
-                    </div>
-                    <div class="form-group">
-                        <label>Price</label>
-                        <input type="number" class="i-price" placeholder="0.00">
-                    </div>
-                    <div class="total-display">
-                        <small>ITEM TOTAL</small>
-                        <span class="i-total">0.00</span>
-                    </div>
+                    <div class="form-group"><label>Qty</label><input type="number" class="i-qty" placeholder="0"></div>
+                    <div class="form-group"><label>Price</label><input type="number" class="i-price" placeholder="0.00"></div>
+                    <div class="total-display"><small>TOTAL</small><span class="i-total">0.00</span></div>
                 </div>
             `;
             itemsContainer.appendChild(div);
@@ -908,19 +1300,12 @@
             
             div.querySelectorAll('input').forEach(inp => {
                 inp.addEventListener('focus', function() {
-                    if(this.value === '0' || this.value === '0.00') {
-                        this.value = '';
-                    }
+                    if(this.value === '0' || this.value === '0.00') this.value = '';
                     if(inp !== iCode && inp !== iDesc) handleMobileFocus(inp);
                 });
-
                 inp.addEventListener('dblclick', (e) => {
                     e.target.value = '';
-                    if(e.target.classList.contains('i-code')) {
-                        iDesc.value = '';
-                        iPrice.value = '';
-                        e.target.dataset.lastValid = '';
-                    }
+                    if(e.target.classList.contains('i-code')) { iDesc.value = ''; iPrice.value = ''; e.target.dataset.lastValid = ''; }
                     calcRow(div);
                 });
             });
@@ -929,51 +1314,28 @@
                 e.target.value = e.target.value.toUpperCase();
                 const val = e.target.value;
                 const exact = itemsData.find(i => i.code === val);
-                if(exact) {
-                    selectItem(exact, iCode);
-                } else {
-                    if (e.target.dataset.lastValid && val !== e.target.dataset.lastValid) {
-                        iDesc.value = '';
-                        iPrice.value = '';
-                        e.target.dataset.lastValid = '';
-                    }
-                }
-                renderSuggestions(val, 'item', iCode);
-                calcTotal();
+                if(exact) selectItem(exact, iCode);
+                else if (e.target.dataset.lastValid && val !== e.target.dataset.lastValid) { iDesc.value = ''; iPrice.value = ''; e.target.dataset.lastValid = ''; }
+                renderSuggestions(val, 'item', iCode); calcTotal();
             });
-
-            iCode.addEventListener('focus', () => {
-                handleMobileFocus(iCode);
-                renderSuggestions(iCode.value, 'item', iCode);
-            });
-
+            iCode.addEventListener('focus', () => { handleMobileFocus(iCode); renderSuggestions(iCode.value, 'item', iCode); });
             iDesc.addEventListener('input', (e) => renderSuggestions(e.target.value, 'item', iDesc));
-            iDesc.addEventListener('focus', () => {
-                handleMobileFocus(iDesc);
-                renderSuggestions(iDesc.value, 'item', iDesc);
-            });
-
-            [iQty, iPrice].forEach(inp => {
-                inp.addEventListener('input', () => calcRow(div));
-            });
+            iDesc.addEventListener('focus', () => { handleMobileFocus(iDesc); renderSuggestions(iDesc.value, 'item', iDesc); });
+            [iQty, iPrice].forEach(inp => inp.addEventListener('input', () => calcRow(div)));
         };
 
         document.getElementById('btnAddRow').addEventListener('click', addItemRow);
-
         function calcRow(card) {
             const qty = parseFloat(card.querySelector('.i-qty').value) || 0;
             const price = parseFloat(card.querySelector('.i-price').value) || 0;
-            const total = qty * price;
-            card.querySelector('.i-total').innerText = total.toFixed(2);
+            card.querySelector('.i-total').innerText = (qty * price).toFixed(2);
             calcTotal();
         }
-
         window.calcTotal = () => {
             let itemCount = 0, grandTotal = 0;
             document.querySelectorAll('.mobile-item-card').forEach(c => {
                 if(c.classList.contains('is-msg')) return;
-                const codeVal = c.querySelector('.i-code').value.trim();
-                if(codeVal !== '') itemCount++;
+                if(c.querySelector('.i-code').value.trim() !== '') itemCount++;
                 const qty = parseFloat(c.querySelector('.i-qty').value) || 0;
                 const price = parseFloat(c.querySelector('.i-price').value) || 0;
                 grandTotal += (qty * price);
@@ -984,132 +1346,192 @@
 
         // --- SUBMIT PRE-CHECK ---
         let pendingOrderData = null;
-
         document.getElementById('btnPreSubmit').addEventListener('click', () => {
             const customer = document.getElementById('customerInput').value;
             const rep = document.getElementById('repSelect').value;
+            if(!customer || !rep) { showAlert("Please select a Customer and Representative"); return; }
 
-            if(!customer || !rep) {
-                showAlert("Please select a Customer and Representative");
-                return;
-            }
+            localStorage.setItem('lastRep', rep);
 
             const items = [];
             document.querySelectorAll('.mobile-item-card').forEach(c => {
                 if (c.classList.contains('is-msg')) {
                     const msg = c.querySelector('.msg-content').value;
-                    if(msg.trim()) {
-                        items.push({ code: "MSG", desc: msg, qty: 0, price: 0, total: 0 });
-                    }
+                    if(msg.trim()) items.push({ code: "MSG", desc: msg, qty: 0, price: 0, total: 0 });
                 } else {
                     const code = c.querySelector('.i-code').value;
                     const qty = c.querySelector('.i-qty').value;
                     if(code) { 
                         items.push({
-                            code: code,
-                            desc: c.querySelector('.i-desc').value,
-                            qty: parseFloat(qty) || 0,
-                            price: parseFloat(c.querySelector('.i-price').value) || 0,
+                            code: code, desc: c.querySelector('.i-desc').value,
+                            qty: parseFloat(qty) || 0, price: parseFloat(c.querySelector('.i-price').value) || 0,
                             total: parseFloat(c.querySelector('.i-total').innerText) || 0
                         });
                     }
                 }
             });
 
-            if(items.length === 0) {
-                showAlert("Please add at least one item or message");
-                return;
-            }
+            if(items.length === 0) { showAlert("Please add at least one item or message"); return; }
 
             pendingOrderData = {
                 customer: {
-                    name: customer,
-                    code: document.getElementById('custCode').value,
-                    address: document.getElementById('custAddress').value,
-                    mobile: document.getElementById('custMobile').value
+                    name: customer, code: document.getElementById('custCode').value,
+                    address: document.getElementById('custAddress').value, mobile: document.getElementById('custMobile').value
                 },
-                rep: rep,
-                items: items,
-                grandTotal: parseFloat(document.getElementById('grandTotal').innerText),
-                timestamp: serverTimestamp(),
+                rep: rep, items: items, grandTotal: parseFloat(document.getElementById('grandTotal').innerText),
+                timestamp: Date.now(), 
                 date: new Date().toISOString().split('T')[0]
             };
 
-            // --- POPULATE PREMIUM SUMMARY ---
-            const modal = document.getElementById('summaryModal');
-            const psCust = document.getElementById('psCustomer');
-            const psList = document.getElementById('psItemsList');
-            
-            psCust.innerHTML = `
+            // POPULATE MODAL
+            document.getElementById('psCustomer').innerHTML = `
                 <div class="ps-c-icon"><i class="fa-solid fa-user-tag"></i></div>
-                <div class="ps-c-info">
-                    <h4>${pendingOrderData.customer.name}</h4>
-                    <p>${pendingOrderData.customer.code} | ${pendingOrderData.customer.address}</p>
-                </div>
-            `;
-
+                <div class="ps-c-info"><h4>${pendingOrderData.customer.name}</h4><p>${pendingOrderData.customer.code}</p></div>`;
+            
             let listHtml = '';
             items.forEach(i => {
-                if(i.code === 'MSG') {
-                    listHtml += `
-                        <div class="ps-item">
-                            <div class="ps-i-desc" style="color:var(--neon-blue); font-style:italic; grid-column:1 / -1;">
-                                <i class="fa-solid fa-comment-dots"></i> ${i.desc}
-                            </div>
-                        </div>`;
-                } else {
-                    listHtml += `
-                        <div class="ps-item">
-                            <div class="ps-i-desc">
-                                ${i.desc} <small>Code: ${i.code}</small>
-                            </div>
-                            <div class="ps-i-qty">
-                                <span class="qty-badge">${i.qty}</span>
-                            </div>
-                            <div class="ps-i-total">
-                                ${i.total.toFixed(2)}
-                            </div>
-                        </div>
-                    `;
-                }
+                if(i.code === 'MSG') listHtml += `<div class="ps-item"><div class="ps-i-desc" style="color:var(--accent-purple); font-style:italic; grid-column:1/-1;">${i.desc}</div></div>`;
+                else listHtml += `<div class="ps-item"><div class="ps-i-desc">${i.desc}<small>${i.code}</small></div><div class="ps-i-qty"><span class="qty-badge">${i.qty}</span></div><div class="ps-i-total">${i.total.toFixed(2)}</div></div>`;
             });
-
-            psList.innerHTML = listHtml;
+            document.getElementById('psItemsList').innerHTML = listHtml;
             document.getElementById('psTotal').innerText = pendingOrderData.grandTotal.toFixed(2);
-            modal.classList.add('open');
+            document.getElementById('summaryModal').classList.add('open');
         });
 
-        // --- FINAL SUBMIT ---
+        // --- SUBMIT LOGIC (STRICT SEPARATION: ONLINE VS OFFLINE) ---
         document.getElementById('btnConfirmSubmit').addEventListener('click', async () => {
             const btn = document.getElementById('btnConfirmSubmit');
-            btn.disabled = true;
-            btn.innerText = "Processing...";
+            btn.disabled = true; btn.innerText = "Processing...";
+            
+            closeModal('summaryModal');
+            const successPopup = document.getElementById('successPopup');
+            successPopup.classList.add('show');
+            
+            // DELAY 1 SECOND AS REQUESTED TO CHECK STATUS
+            setTimeout(async () => {
 
-            try {
-                // Save to Firestore
-                await addDoc(collection(db, "orders"), pendingOrderData);
+                if(!navigator.onLine){
+                    // === BRANCH: OFFLINE ===
+                    // User is definitely offline.
+                    // Store in LocalStorage (Queue). Do NOT try firebase.
+                    saveToOfflineQueue(pendingOrderData);
+
+                    document.getElementById('successTitle').innerText = "SAVED TO PENDING";
+                    document.getElementById('successSub').innerText = "You are offline. Order saved locally.";
+                    document.querySelector('.success-icon').style.color = "#ef4444"; // Red Icon indicating offline save
                 
-                // Close Summary Modal
-                closeModal('summaryModal');
+                    // RESET FORM IMMEDIATELY SO USER CAN ADD ANOTHER ORDER
+                    setTimeout(()=>{
+                        successPopup.classList.remove('show');
+                        btn.disabled = false;
+                        btn.innerText = "CONFIRM & SAVE";
+                        resetForm();
+                    }, 1500);
 
-                // Show Custom Success Popup
-                const successPopup = document.getElementById('successPopup');
-                successPopup.classList.add('show');
+                } else {
+                    // === BRANCH: ONLINE ===
+                    // User is online.
+                    // Try to upload to Database directly.
+                    try {
+                        const docData = { ...pendingOrderData, timestamp: serverTimestamp() };
+                        await addDoc(collection(db, "orders"), docData);
 
-                // --- FORCE RESET & RELOAD ---
-                // We clear inputs visually first
-                resetForm();
-                
-                setTimeout(() => {
-                    location.reload(true); // Hard Reload to clear all browser cache/state
-                }, 1500);
+                        document.getElementById('successTitle').innerText = "ORDER UPLOADED";
+                        document.getElementById('successSub').innerText = "Successfully saved to Database.";
+                        document.querySelector('.success-icon').style.color = "var(--accent-blue)";
 
-            } catch (e) {
-                showAlert("Error: " + e.message);
-                btn.disabled = false;
-                btn.innerText = "CONFIRM & SAVE";
-            }
+                        // RESET FORM IMMEDIATELY
+                        setTimeout(()=>{
+                            successPopup.classList.remove('show');
+                            btn.disabled = false;
+                            btn.innerText = "CONFIRM & SAVE";
+                            resetForm();
+                        }, 1500);
+
+                    } catch(err) {
+                        // FALLBACK: User was online, but request failed (e.g. weak signal)
+                        // Save to queue as backup
+                        saveToOfflineQueue(pendingOrderData);
+
+                        document.getElementById('successTitle').innerText = "CONNECTION FAILED";
+                        document.getElementById('successSub').innerText = "Upload failed. Saved to Pending.";
+                        document.querySelector('.success-icon').style.color = "#ef4444";
+
+                        setTimeout(()=>{
+                            successPopup.classList.remove('show');
+                            btn.disabled = false;
+                            btn.innerText = "CONFIRM & SAVE";
+                            resetForm();
+                        }, 1500);
+                    }
+                }
+
+            }, 1000); // 1 Second Delay check
         });
+
+
+
+        // --- OFFLINE QUEUE MANAGER (PERSISTENT) ---
+        function saveToOfflineQueue(order){
+            // Ensure timestamp is a number for JSON storage, not serverTimestamp object
+            order.timestamp = Date.now(); 
+            pushOfflineOrder(order);
+        }
+
+
+        async function processOfflineQueue(){
+
+            if(!navigator.onLine) return;
+
+            let queue = getOfflineOrders();
+            if(queue.length === 0) return;
+
+            const remaining = [];
+            let syncCount = 0;
+
+            // Try to upload pending items
+            for(const order of queue){
+                try{
+                    const docData = { ...order, timestamp: serverTimestamp() };
+                    await addDoc(collection(db,"orders"), docData);
+                    syncCount++;
+                }catch(e){
+                    // If one fails, keep it in queue
+                    remaining.push(order);
+                }
+            }
+
+            setOfflineOrders(remaining);
+            updatePendingBadge();
+            
+            if(syncCount > 0) {
+                 const badge = document.getElementById("pendingBadge");
+                 badge.style.display="block";
+                 badge.innerText = "Synced " + syncCount + " Orders";
+                 badge.style.background = "#22c55e";
+                 setTimeout(updatePendingBadge, 3000);
+            }
+        }
+
+
+        function updatePendingBadge(){
+            const queue = getOfflineOrders();
+            const badge = document.getElementById("pendingBadge");
+
+            if(queue.length > 0){
+                badge.style.display="block";
+                badge.innerText = queue.length + " Sync Pending";
+                badge.style.background = "var(--accent-purple)";
+            }else{
+                badge.style.display="none";
+            }
+        }
+
+
+        loadData();
+        updatePendingBadge();
+        updateNetworkStatus();
+
 
     </script>
 </body>
