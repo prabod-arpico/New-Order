@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Orders – Prabodfx</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg: #030712;
+  --surface: rgba(17, 24, 39, 0.6);
+  --surface-highlight: rgba(31, 41, 55, 0.7);
+  --border: rgba(255, 255, 255, 0.08);
+  --primary: #6366f1; /* Indigo */
+  --secondary: #06b6d4; /* Cyan */
+  --accent: #f43f5e; /* Rose */
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --glass: blur(16px) saturate(180%);
+  --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+* { box-sizing: border-box; font-family: 'Inter', sans-serif; outline: none; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: var(--bg);
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(6, 182, 212, 0.15) 0px, transparent 50%);
+  color: var(--text-main);
+  padding: 32px;
+  overflow-x: hidden;
+}
+
+/* --- HEADER --- */
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 40px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0;
+  background: linear-gradient(to right, #fff, #94a3b8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+header span {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+/* --- GRID --- */
+.orders-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 24px;
+}
+
+/* --- CARD --- */
+.order-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 24px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+.order-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+}
+.order-card:hover {
+  transform: translateY(-4px);
+  background: var(--surface-highlight);
+  border-color: rgba(99, 102, 241, 0.3);
+  box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5);
+}
+
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.order-id {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--secondary);
+  background: rgba(6, 182, 212, 0.1);
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+.timestamp {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.customer-name {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stats {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.stat-pill {
+  font-size: 0.75rem;
+  padding: 6px 12px;
+  border-radius: 100px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+}
+.stat-pill i { color: var(--primary); }
+
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.total-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+.total-amount { font-size: 1.2rem; font-weight: 700; color: #fff; }
+
+/* --- MODAL --- */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.modal.active { opacity: 1; }
+
+.modal-inner {
+  width: 95%;
+  max-width: 1000px;
+  max-height: 90vh;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.sheet {
+  background: #0f172a;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 24px;
+  padding: 0;
+  box-shadow: 0 50px 100px -20px rgba(0,0,0,0.8);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  max-height: 90vh;
+}
+
+/* Modal Header */
+.sheet-head {
+  padding: 24px 32px;
+  background: rgba(255,255,255,0.02);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+.sheet-head h2 { margin: 0; font-size: 1.5rem; }
+.customer-address {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+  font-weight: 400;
+}
+.close-btn {
+  background: rgba(255,255,255,0.05);
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  color: #fff;
+  cursor: pointer;
+  transition: 0.2s;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.close-btn:hover { background: var(--accent); transform: rotate(90deg); }
+
+/* Modal Body */
+.sheet-body {
+  padding: 32px;
+  overflow-y: auto;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.info-box {
+  background: rgba(255,255,255,0.03);
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+.info-box label { display: block; font-size: 0.7rem; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; }
+.info-box div { font-weight: 600; font-size: 1rem; }
+
+/* SEPARATE MSG SECTION */
+.msg-section {
+  background: rgba(99, 102, 241, 0.05);
+  border: 1px dashed rgba(99, 102, 241, 0.3);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 30px;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+.msg-icon {
+  color: var(--primary);
+  font-size: 1.2rem;
+  margin-top: 2px;
+}
+.msg-content h4 { margin: 0 0 4px; font-size: 0.9rem; color: var(--primary); }
+.msg-content p { margin: 0; font-size: 0.85rem; color: #cbd5e1; line-height: 1.5; }
+
+/* Table */
+.table-container {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+}
+table { width: 100%; border-collapse: collapse; }
+thead { background: rgba(255,255,255,0.02); }
+th { padding: 16px; text-align: left; font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
+td { padding: 16px; border-top: 1px solid var(--border); font-size: 0.9rem; }
+tr { transition: 0.2s; border-left: 3px solid transparent; }
+tr:hover { background: rgba(255,255,255,0.02); }
+
+/* Selected Row Style */
+tr.selected-row {
+  background: rgba(99, 102, 241, 0.1);
+  border-left: 3px solid var(--primary);
+}
+.col-right { text-align: right; font-family: 'JetBrains Mono', monospace; }
+
+/* --- CALCULATOR --- */
+.calc-box {
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%) scale(0.95);
+  width: 360px;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(99, 102, 241, 0.4);
+  box-shadow: 0 0 40px rgba(99, 102, 241, 0.2), 0 20px 50px rgba(0,0,0,0.8);
+  border-radius: 24px;
+  padding: 24px;
+  z-index: 200;
+  display: none;
+  opacity: 0;
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.calc-box.show {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.calc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.calc-header h4 { margin: 0; font-size: 1.1rem; }
+.item-badge { background: var(--primary); font-size: 0.7rem; padding: 2px 8px; border-radius: 4px; color: #fff; }
+
+.calc-field { margin-bottom: 16px; }
+.calc-field label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px; }
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.input-wrapper i { position: absolute; left: 14px; color: var(--text-muted); font-size: 0.8rem; }
+.calc-input {
+  width: 100%;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--border);
+  padding: 12px 12px 12px 36px;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 1rem;
+  font-family: 'JetBrains Mono', monospace;
+  transition: 0.2s;
+}
+.calc-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2); }
+
+.result-box {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  padding: 16px;
+  border-radius: 12px;
+  text-align: center;
+  margin-top: 8px;
+}
+.result-label { font-size: 0.75rem; color: rgba(255,255,255,0.8); margin-bottom: 4px; }
+.result-val { font-size: 1.8rem; font-weight: 800; }
+
+.calc-footer {
+  margin-top: 16px;
+  text-align: center;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+/* --- TOAST --- */
+.toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: rgba(220, 38, 38, 0.9);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 50px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  box-shadow: 0 10px 30px rgba(220, 38, 38, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 300;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.3s ease;
+}
+.toast.active {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+.toast.success {
+  background: rgba(16, 185, 129, 0.9);
+  box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div>
+    <h1>Orders Dashboard</h1>
+  </div>
+  <div style="font-size: 0.8rem; color: var(--text-muted);">
+    <i class="fa-solid fa-circle" style="color: #10b981; font-size: 8px; margin-right: 6px;"></i>Live Connection
+  </div>
+</header>
+
+<div id="orders" class="orders-grid">
+  </div>
+
+<div class="modal" id="modal">
+  <div class="modal-inner">
+    <div class="sheet" id="sheet">
+      </div>
+  </div>
+</div>
+
+<div class="calc-box" id="calcBox">
+  <div class="calc-header">
+    <div>
+      <h4 id="calcTitle">Margin Calc</h4>
+      <div style="font-size: 0.7rem; color:var(--text-muted);" id="calcItemName">Item Name</div>
+    </div>
+    <span class="item-badge" id="calcCode">CODE</span>
+  </div>
+
+  <div class="calc-field">
+    <label>User Input (Selling Price)</label>
+    <div class="input-wrapper">
+      <i class="fa-solid fa-tag"></i>
+      <input type="number" id="calcInput" class="calc-input" placeholder="0.00" />
+    </div>
+  </div>
+
+  <div class="calc-field">
+    <label>Base Price (Cost)</label>
+    <div class="input-wrapper">
+      <i class="fa-solid fa-dollar-sign"></i>
+      <input type="number" id="calcPrice" class="calc-input" placeholder="0.00" />
+    </div>
+  </div>
+
+  <div class="result-box">
+    <div class="result-label">PROFIT MARGIN</div>
+    <div class="result-val" id="calcResult">0.00%</div>
+  </div>
+  
+  <div class="calc-footer">
+    Press <strong style="color:#fff">ENTER</strong> to save & copy
+  </div>
+</div>
+
+<div id="toast" class="toast">
+  <i class="fa-solid fa-triangle-exclamation" id="toastIcon"></i>
+  <span id="toastMsg">Notification</span>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+import { getFirestore, collection, onSnapshot, query, orderBy, updateDoc, doc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+
+const firebaseConfig={
+  apiKey:"AIzaSyA5o9ttyPpOmRu0zVSUJ6g3H1mf05FkgW4",
+  authDomain:"reps-a1259.firebaseapp.com",
+  projectId:"reps-a1259"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// DOM Elements
+const ordersDiv = document.getElementById("orders");
+const modal = document.getElementById("modal");
+const sheet = document.getElementById("sheet");
+const calcBox = document.getElementById("calcBox");
+const calcInput = document.getElementById("calcInput"); 
+const calcPrice = document.getElementById("calcPrice"); 
+const calcResult = document.getElementById("calcResult");
+const toast = document.getElementById("toast");
+const toastMsg = document.getElementById("toastMsg");
+const toastIcon = document.getElementById("toastIcon");
+
+// State
+let currentItems = [];
+let currentIndex = 0; // For calc row navigation
+let currentDocId = "";
+let currentOrderData = {};
+let copyStep = 0; // For sequential copying
+
+// 1. Fetch Orders
+onSnapshot(query(collection(db, "orders"), orderBy("timestamp", "desc")), snap => {
+  ordersDiv.innerHTML = "";
+  snap.forEach(d => {
+    const data = d.data();
+    const card = document.createElement("div");
+    card.className = "order-card";
+    
+    const date = new Date(data.timestamp?.seconds * 1000 || Date.now()).toLocaleDateString();
+    
+    // Count only real items for stats (excluding MSG)
+    const realItemCount = (data.items || []).filter(i => i.code !== "MSG").length;
+
+    card.innerHTML = `
+      <div class="card-top">
+        <span class="order-id">#${d.id.slice(-6).toUpperCase()}</span>
+        <span class="timestamp">${date}</span>
+      </div>
+      <div class="customer-name" title="${data.customer?.name}">${data.customer?.name || "Unknown Customer"}</div>
+      
+      <div class="stats">
+        <div class="stat-pill"><i class="fa-solid fa-user-tie"></i> ${data.rep || "Direct"}</div>
+        <div class="stat-pill"><i class="fa-solid fa-box"></i> ${realItemCount} Items</div>
+      </div>
+      
+      <div class="card-footer">
+        <span class="total-label">Total Value</span>
+        <span class="total-amount">LKR ${(data.grandTotal || 0).toLocaleString()}</span>
+      </div>
+    `;
+    card.onclick = () => openOrder(d.id, data);
+    ordersDiv.appendChild(card);
+  });
+});
+
+// 2. Open Order Modal
+function openOrder(id, data) {
+  currentDocId = id;
+  currentOrderData = data;
+  copyStep = 0; // Reset sequential copy counter
+  
+  // --- SEPARATION LOGIC ---
+  const rawItems = data.items || [];
+  const msgItem = rawItems.find(item => item.code === "MSG");
+  const msgContent = msgItem ? msgItem.desc : (data.notes || "No special instructions.");
+  currentItems = rawItems.filter(item => item.code !== "MSG");
+  
+  currentIndex = 0;
+  
+  // Build Modal Content
+  sheet.innerHTML = `
+    <div class="sheet-head">
+      <div>
+        <div style="font-size:0.8rem; color:var(--secondary); margin-bottom:4px;">ORDER #${id.slice(-6).toUpperCase()}</div>
+        <h2 class="customer-name-header">${data.customer?.name || "Customer"}</h2>
+        <div class="customer-address">${data.customer?.address || ""}</div>
+      </div>
+      <button class="close-btn" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <div class="sheet-body">
+      
+      <div class="msg-section">
+        <div class="msg-icon"><i class="fa-regular fa-comment-dots"></i></div>
+        <div class="msg-content">
+          <h4>Order Notes</h4>
+          <p>${msgContent}</p>
+        </div>
+      </div>
+
+      <div class="info-grid">
+        <div class="info-box"><label>Code</label><div>${data.customer?.code || "-"}</div></div>
+        <div class="info-box"><label>Rep</label><div>${data.rep || "-"}</div></div>
+        <div class="info-box"><label>Date</label><div>${new Date(data.timestamp?.seconds * 1000).toLocaleDateString()}</div></div>
+      </div>
+
+      <div class="table-container">
+        <table id="itemsTable">
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Description</th>
+              <th class="col-right">Qty</th>
+              <th class="col-right">Price</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${currentItems.map((item, idx) => `
+              <tr id="row-${idx}" data-index="${idx}">
+                <td><span style="color:var(--text-muted)">${item.code}</span></td>
+                <td><strong style="color:#fff">${item.desc}</strong></td>
+                <td class="col-right">${item.qty}</td>
+                <td class="col-right">${Number(item.price).toLocaleString()}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+
+  // Attach generic Copy click listener to the whole sheet
+  sheet.onclick = handleInvoiceClick;
+  
+  // Disable selection on mousedown if Ctrl is held
+  sheet.onmousedown = (e) => {
+    if (e.ctrlKey) {
+      e.preventDefault(); // This is the key line to disable browser selection
+    }
+  };
+
+  sheet.oncontextmenu = handleRightClick;
+
+  modal.style.display = "flex";
+  setTimeout(() => modal.classList.add("active"), 10);
+}
+
+// 3. Highlight Selected Row
+function highlightRow(index) {
+  const allRows = sheet.querySelectorAll("tbody tr");
+  allRows.forEach(r => r.classList.remove("selected-row"));
+  
+  const targetRow = document.getElementById(`row-${index}`);
+  if(targetRow) {
+    targetRow.classList.add("selected-row");
+    targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+
+// --- MAIN CLICK LOGIC (CTRL vs NORMAL) ---
+function handleInvoiceClick(e) {
+  // Ignore clicks on buttons (close) or inputs (calc)
+  if (e.target.closest("button") || e.target.closest("input")) return;
+  
+  // === 1. CTRL + LEFT CLICK (Specific Section Copy) ===
+  if (e.ctrlKey) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    let textToCopy = "";
+    const target = e.target;
+
+    // Check where user clicked
+    
+    // A. Table Cell (Item Code, Qty, Desc, Price)
+    const td = target.closest("td");
+    if (td) {
+      textToCopy = td.innerText.trim();
+      // If user clicked row, highlight it too
+      const tr = target.closest("tr");
+      if (tr) {
+         const idx = parseInt(tr.dataset.index);
+         highlightRow(idx);
+         currentIndex = idx;
+      }
+    } 
+    // B. Info Boxes (Customer Code, Rep, Date)
+    else {
+      const infoBox = target.closest(".info-box");
+      if (infoBox) {
+        // Find the value div (2nd child or div inside)
+        const valDiv = infoBox.querySelector("div");
+        if(valDiv) textToCopy = valDiv.innerText.trim();
+      }
+      // C. Customer Name Header
+      else if (target.closest(".customer-name-header")) {
+        textToCopy = target.closest(".customer-name-header").innerText.trim();
+      }
+      // D. Customer Address
+      else if (target.closest(".customer-address")) {
+        textToCopy = target.closest(".customer-address").innerText.trim();
+      }
+      // E. Fallback: Copy generic text content of clicked element
+      else if (target.innerText && target.innerText.trim().length > 0) {
+        textToCopy = target.innerText.trim();
+      }
+    }
+
+    if (textToCopy) {
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        showToast("Copied: " + textToCopy, true);
+      });
+    }
+    return; // Stop here, do not run sequential logic
+  }
+
+  // === 2. NORMAL CLICK (Sequential Copy) ===
+  // Ignore if user is manually selecting text
+  if (window.getSelection().toString().length > 0) return;
+
+  let textToCopy = "";
+  let feedback = "";
+
+  if (copyStep === 0) {
+    textToCopy = currentOrderData.customer?.code || "";
+    feedback = "Copied Cust Code";
+    copyStep++;
+  } 
+  else if (copyStep === 1) {
+    const repStr = currentOrderData.rep || "";
+    const match = repStr.trim().slice(-6); 
+    textToCopy = match;
+    feedback = "Copied Rep ID";
+    copyStep++;
+  } 
+  else {
+    const adjustedStep = copyStep - 2;
+    const itemIndex = Math.floor(adjustedStep / 2);
+    const isQty = (adjustedStep % 2 !== 0);
+
+    if (itemIndex < currentItems.length) {
+      const item = currentItems[itemIndex];
+      highlightRow(itemIndex);
+      currentIndex = itemIndex; // Sync calc index
+
+      if (!isQty) {
+        textToCopy = item.code;
+        feedback = `Copied Item Code (${item.code})`;
+      } else {
+        textToCopy = item.qty.toString();
+        feedback = `Copied Qty (${item.qty})`;
+      }
+      copyStep++;
+    } else {
+      showToast("End of Items List", false);
+      return;
+    }
+  }
+
+  if(textToCopy) {
+    navigator.clipboard.writeText(textToCopy).then(() => {
+      showToast(feedback, true);
+    }).catch(err => {
+      console.error("Copy failed", err);
+      showToast("Copy Failed", false);
+    });
+  }
+}
+
+// --- RIGHT CLICK LOGIC (CALCULATOR) ---
+function handleRightClick(e) {
+  // === CTRL + RIGHT CLICK = OPEN CALCULATOR ===
+  if (e.ctrlKey) {
+    const tr = e.target.closest("tr[data-index]");
+    if (tr) {
+      e.preventDefault(); // Stop default context menu
+      const idx = parseInt(tr.dataset.index);
+      currentIndex = idx; 
+      highlightRow(idx);  
+      openCalc(idx);
+    }
+  } 
+  // Normal Right Click = Default Context Menu
+}
+
+// 4. Calculator Logic
+function openCalc(index) {
+  const item = currentItems[index];
+  if (!item) return;
+
+  highlightRow(index);
+
+  document.getElementById("calcCode").innerText = item.code;
+  document.getElementById("calcItemName").innerText = item.desc;
+  
+  calcPrice.value = item.price; 
+  calcInput.value = ""; 
+  calcResult.innerText = "0.00%";
+
+  calcBox.style.display = "block";
+  setTimeout(() => calcBox.classList.add("show"), 10);
+  calcInput.focus();
+}
+
+function calculate() {
+  const inputVal = parseFloat(calcInput.value);
+  const priceVal = parseFloat(calcPrice.value);
+
+  if (!inputVal || !priceVal) {
+    calcResult.innerText = "0.00%";
+    return;
+  }
+
+  const result = ((inputVal - priceVal) / inputVal * 100).toFixed(2);
+  calcResult.innerText = `${result}%`;
+  calcResult.style.color = result < 0 ? "#ef4444" : "#10b981";
+}
+
+calcInput.oninput = calculate;
+calcPrice.oninput = calculate;
+
+function closeCalc() {
+  calcBox.classList.remove("show");
+  setTimeout(() => calcBox.style.display = "none", 200);
+}
+
+// 5. Global Events
+document.addEventListener("keydown", (e) => {
+  if (modal.style.display === "flex") {
+    
+    const isCalcOpen = calcBox.style.display === "block";
+
+    if (e.key === "Enter" && isCalcOpen) {
+      saveAndCloseCalc();
+      return;
+    }
+
+    if (e.code === "Space") {
+      if(e.target.tagName !== "INPUT") e.preventDefault(); 
+
+      if (!isCalcOpen) {
+         if (currentIndex < currentItems.length) {
+           openCalc(currentIndex);
+         } else {
+           showToast("No more items", false);
+         }
+      } 
+    }
+  }
+});
+
+async function saveAndCloseCalc() {
+  const input = parseFloat(calcInput.value);
+  const item = currentItems[currentIndex];
+  
+  const resultTxt = calcResult.innerText.replace(/[^\d.-]/g, "");
+  await navigator.clipboard.writeText(resultTxt);
+
+  const finalPrice = parseFloat(calcPrice.value);
+  
+  await updateDoc(doc(db, "orders", currentDocId), {
+    [`calculations.${item.code}`]: {
+      input: input,
+      basePrice: finalPrice,
+      margin: resultTxt
+    }
+  });
+
+  closeCalc();
+  currentIndex++; 
+}
+
+// Click Outside Logic
+document.addEventListener('click', (event) => {
+  const isCalcOpen = calcBox.style.display === "block";
+  if (isCalcOpen && !calcBox.contains(event.target) && !event.target.closest('tr')) {
+    closeCalc();
+  }
+});
+
+let toastTimeout;
+function showToast(msg, isSuccess = false) {
+  toastMsg.innerText = msg;
+  if(isSuccess) {
+    toast.classList.add("success");
+    toastIcon.className = "fa-solid fa-check";
+  } else {
+    toast.classList.remove("success");
+    toastIcon.className = "fa-solid fa-triangle-exclamation";
+  }
+  
+  toast.classList.add("active");
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => {
+    toast.classList.remove("active");
+  }, 2000); 
+}
+
+window.closeModal = () => {
+  modal.classList.remove("active");
+  setTimeout(() => modal.style.display = "none", 300);
+  closeCalc();
+};
+
+window.onclick = (e) => {
+  if (e.target === modal) window.closeModal();
+};
+
+</script>
+
+</body>
+</html>
