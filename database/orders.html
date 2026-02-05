@@ -17,13 +17,16 @@
   --primary: #6366f1; /* Indigo */
   --secondary: #06b6d4; /* Cyan */
   --accent: #f43f5e; /* Rose */
+  --success: #10b981; /* Emerald */
   --text-main: #f8fafc;
   --text-muted: #94a3b8;
   --glass: blur(16px) saturate(180%);
-  --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
 }
 
 * { box-sizing: border-box; font-family: 'Inter', sans-serif; outline: none; }
+
+/* UTILITY TO HIDE ELEMENTS */
+.hidden { display: none !important; }
 
 body {
   margin: 0;
@@ -35,6 +38,7 @@ body {
   color: var(--text-main);
   padding: 32px;
   overflow-x: hidden;
+  user-select: none;
 }
 
 /* --- HEADER --- */
@@ -42,7 +46,7 @@ header {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  margin-bottom: 40px;
+  margin-bottom: 30px;
   padding-bottom: 20px;
   border-bottom: 1px solid var(--border);
 }
@@ -54,12 +58,36 @@ header h1 {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
-header span {
-  font-size: 0.85rem;
+
+/* --- SECTIONS --- */
+.section-title {
+  font-size: 1.1rem;
+  font-weight: 600;
   color: var(--text-muted);
-  font-weight: 500;
-  letter-spacing: 0.5px;
+  margin: 40px 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: default;
 }
+.section-title i { color: var(--primary); }
+
+.toggle-btn {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid var(--border);
+  color: var(--text-main);
+  border-radius: 6px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  cursor: pointer;
+  margin-left: 10px;
+  transition: 0.2s;
+}
+.toggle-btn:hover { background: var(--primary); }
 
 /* --- GRID --- */
 .orders-grid {
@@ -79,12 +107,6 @@ header span {
   position: relative;
   overflow: hidden;
 }
-.order-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0; height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-}
 .order-card:hover {
   transform: translateY(-4px);
   background: var(--surface-highlight);
@@ -95,8 +117,12 @@ header span {
 .card-top {
   display: flex;
   justify-content: space-between;
+  align-items: center; /* Center Vertically */
   margin-bottom: 12px;
+  height: 32px; /* Fixed height for alignment */
 }
+
+/* Standard Order ID Style */
 .order-id {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.75rem;
@@ -105,10 +131,7 @@ header span {
   padding: 4px 8px;
   border-radius: 6px;
 }
-.timestamp {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-}
+.timestamp { font-size: 0.75rem; color: var(--text-muted); }
 
 .customer-name {
   font-size: 1.4rem;
@@ -145,8 +168,43 @@ header span {
   padding-top: 16px;
   border-top: 1px solid var(--border);
 }
-.total-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
 .total-amount { font-size: 1.2rem; font-weight: 700; color: #fff; }
+
+/* --- COMPLETED CARD VARIANT (PREMIUM LOOK) --- */
+.order-card.completed {
+  background: linear-gradient(145deg, rgba(16, 185, 129, 0.05) 0%, rgba(17, 24, 39, 0.8) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+.order-card.completed:hover {
+  border-color: rgba(16, 185, 129, 0.5);
+  box-shadow: 0 10px 30px rgba(16, 185, 129, 0.15);
+}
+
+/* PREMIUM INVOICE NUMBER TAG (Right Side) */
+.invoice-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  font-weight: 700;
+  
+  /* Gradient Text */
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  
+  /* Premium Border & Background */
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  background: rgba(16, 185, 129, 0.05);
+  
+  /* Round / Pill Shape */
+  padding: 6px 14px;
+  border-radius: 999px; /* Fully Round */
+  
+  /* Glow */
+  box-shadow: 0 2px 10px rgba(16, 185, 129, 0.1);
+  display: inline-block;
+  letter-spacing: 0.5px;
+}
 
 /* --- MODAL --- */
 .modal {
@@ -167,7 +225,6 @@ header span {
   width: 95%;
   max-width: 1000px;
   max-height: 90vh;
-  position: relative;
   display: flex;
   flex-direction: column;
 }
@@ -191,15 +248,33 @@ header span {
   border-bottom: 1px solid var(--border);
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
 }
-.sheet-head h2 { margin: 0; font-size: 1.5rem; }
+.sheet-head-left { flex: 1; }
 .customer-address {
   font-size: 0.85rem;
   color: var(--text-muted);
   margin-top: 4px;
-  font-weight: 400;
 }
+.sheet-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.nvat-btn {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: 0.2s;
+  display: flex; align-items: center; gap: 8px;
+}
+.nvat-btn:hover { background: #4f46e5; box-shadow: 0 0 15px rgba(99, 102, 241, 0.4); }
+
 .close-btn {
   background: rgba(255,255,255,0.05);
   border: none;
@@ -210,7 +285,6 @@ header span {
   cursor: pointer;
   transition: 0.2s;
   display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
 }
 .close-btn:hover { background: var(--accent); transform: rotate(90deg); }
 
@@ -218,6 +292,7 @@ header span {
 .sheet-body {
   padding: 32px;
   overflow-y: auto;
+  scroll-behavior: smooth;
 }
 
 .info-grid {
@@ -231,11 +306,12 @@ header span {
   padding: 16px;
   border-radius: 12px;
   border: 1px solid var(--border);
+  cursor: pointer; 
 }
 .info-box label { display: block; font-size: 0.7rem; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; }
 .info-box div { font-weight: 600; font-size: 1rem; }
 
-/* SEPARATE MSG SECTION */
+/* MSG SECTION */
 .msg-section {
   background: rgba(99, 102, 241, 0.05);
   border: 1px dashed rgba(99, 102, 241, 0.3);
@@ -244,15 +320,9 @@ header span {
   margin-bottom: 30px;
   display: flex;
   gap: 16px;
-  align-items: flex-start;
-}
-.msg-icon {
-  color: var(--primary);
-  font-size: 1.2rem;
-  margin-top: 2px;
 }
 .msg-content h4 { margin: 0 0 4px; font-size: 0.9rem; color: var(--primary); }
-.msg-content p { margin: 0; font-size: 0.85rem; color: #cbd5e1; line-height: 1.5; }
+.msg-content p { margin: 0; font-size: 0.85rem; color: #cbd5e1; }
 
 /* Table */
 .table-container {
@@ -267,11 +337,17 @@ td { padding: 16px; border-top: 1px solid var(--border); font-size: 0.9rem; }
 tr { transition: 0.2s; border-left: 3px solid transparent; }
 tr:hover { background: rgba(255,255,255,0.02); }
 
-/* Selected Row Style */
+/* Selected / Special Rows */
 tr.selected-row {
   background: rgba(99, 102, 241, 0.1);
-  border-left: 3px solid var(--primary);
+  border-left: 3px solid var(--primary) !important;
 }
+tr.out-of-stock {
+  background: rgba(239, 68, 68, 0.15) !important;
+  border-left: 3px solid #ef4444 !important;
+}
+tr.out-of-stock td { color: #fca5a5; text-decoration: line-through; }
+
 .col-right { text-align: right; font-family: 'JetBrains Mono', monospace; }
 
 /* --- CALCULATOR --- */
@@ -288,148 +364,105 @@ tr.selected-row {
   z-index: 200;
   display: none;
   opacity: 0;
-  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: all 0.2s;
 }
-.calc-box.show {
-  opacity: 1;
-  transform: translate(-50%, -50%) scale(1);
-}
-
-.calc-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--border);
-}
-.calc-header h4 { margin: 0; font-size: 1.1rem; }
-.item-badge { background: var(--primary); font-size: 0.7rem; padding: 2px 8px; border-radius: 4px; color: #fff; }
-
-.calc-field { margin-bottom: 16px; }
-.calc-field label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px; }
-.input-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-.input-wrapper i { position: absolute; left: 14px; color: var(--text-muted); font-size: 0.8rem; }
-.calc-input {
-  width: 100%;
-  background: rgba(0,0,0,0.3);
-  border: 1px solid var(--border);
-  padding: 12px 12px 12px 36px;
-  border-radius: 10px;
-  color: #fff;
-  font-size: 1rem;
-  font-family: 'JetBrains Mono', monospace;
-  transition: 0.2s;
-}
-.calc-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2); }
-
-.result-box {
-  background: linear-gradient(135deg, var(--primary), var(--secondary));
-  padding: 16px;
-  border-radius: 12px;
-  text-align: center;
-  margin-top: 8px;
-}
-.result-label { font-size: 0.75rem; color: rgba(255,255,255,0.8); margin-bottom: 4px; }
+.calc-box.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+.calc-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom:12px; }
+.calc-input { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--border); padding: 12px; border-radius: 10px; color: #fff; font-family: 'JetBrains Mono'; margin-top: 6px;}
+.result-box { background: linear-gradient(135deg, var(--primary), var(--secondary)); padding: 16px; border-radius: 12px; text-align: center; margin-top: 20px; }
 .result-val { font-size: 1.8rem; font-weight: 800; }
 
-.calc-footer {
-  margin-top: 16px;
-  text-align: center;
-  font-size: 0.7rem;
-  color: var(--text-muted);
+/* --- PREMIUM INPUT MODAL --- */
+.input-modal {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.8); backdrop-filter: blur(5px);
+  z-index: 300; display: none; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 0.3s;
 }
+.input-modal.active { opacity: 1; }
+.input-box {
+  background: #1e293b; border: 1px solid rgba(255,255,255,0.1);
+  width: 400px; padding: 24px; border-radius: 16px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5); transform: scale(0.95); transition: transform 0.2s;
+}
+.input-modal.active .input-box { transform: scale(1); }
+.input-box h3 { margin: 0 0 16px; color: var(--text-main); font-size: 1.2rem; }
+.input-box input {
+  width: 100%; background: rgba(0,0,0,0.4); border: 1px solid var(--border);
+  padding: 14px; border-radius: 8px; color: #fff; font-size: 1.1rem;
+  margin-bottom: 20px;
+}
+.input-box input:focus { border-color: var(--primary); }
+.input-actions { display: flex; justify-content: flex-end; gap: 10px; }
+.btn { padding: 8px 20px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600; }
+.btn-cancel { background: rgba(255,255,255,0.1); color: #fff; }
+.btn-save { background: var(--primary); color: #fff; }
 
 /* --- TOAST --- */
 .toast {
-  position: fixed;
-  bottom: 30px;
-  left: 50%;
-  transform: translateX(-50%) translateY(20px);
-  background: rgba(220, 38, 38, 0.9);
-  color: white;
-  padding: 12px 24px;
-  border-radius: 50px;
-  font-weight: 600;
-  font-size: 0.9rem;
-  box-shadow: 0 10px 30px rgba(220, 38, 38, 0.3);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  z-index: 300;
-  opacity: 0;
-  pointer-events: none;
-  transition: all 0.3s ease;
+  position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: rgba(220, 38, 38, 0.9); color: white; padding: 12px 24px; border-radius: 50px;
+  font-weight: 600; font-size: 0.9rem; display: flex; gap: 10px; z-index: 400;
+  opacity: 0; pointer-events: none; transition: all 0.3s ease;
 }
-.toast.active {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0);
-}
-.toast.success {
-  background: rgba(16, 185, 129, 0.9);
-  box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
-}
+.toast.active { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.success { background: rgba(16, 185, 129, 0.9); }
 </style>
 </head>
 
 <body>
 
 <header>
-  <div>
-    <h1>Orders Dashboard</h1>
-  </div>
+  <div><h1>Dashboard</h1></div>
   <div style="font-size: 0.8rem; color: var(--text-muted);">
     <i class="fa-solid fa-circle" style="color: #10b981; font-size: 8px; margin-right: 6px;"></i>Live Connection
   </div>
 </header>
 
-<div id="orders" class="orders-grid">
-  </div>
+<div class="section-title"><i class="fa-regular fa-clock"></i> Pending Orders (Not Completed)</div>
+<div id="orders" class="orders-grid"></div>
+
+<div class="section-title hidden" id="completedHeader" style="margin-top: 60px;">
+  <i class="fa-solid fa-check-double"></i> Completed Invoices
+  <div class="toggle-btn" id="toggleBtn">+</div>
+</div>
+<div id="invoices" class="orders-grid hidden"></div>
 
 <div class="modal" id="modal">
   <div class="modal-inner">
-    <div class="sheet" id="sheet">
-      </div>
+    <div class="sheet" id="sheet"></div>
+  </div>
+</div>
+
+<div id="inputModal" class="input-modal">
+  <div class="input-box">
+    <h3>Enter Invoice Number</h3>
+    <input type="text" id="nvatInput" placeholder="Ex: INV-2024-001" autocomplete="off">
+    <div class="input-actions">
+      <button class="btn btn-cancel" onclick="closeInputModal()">Cancel</button>
+      <button class="btn btn-save" onclick="submitNVAT()">Save Invoice</button>
+    </div>
   </div>
 </div>
 
 <div class="calc-box" id="calcBox">
   <div class="calc-header">
-    <div>
-      <h4 id="calcTitle">Margin Calc</h4>
-      <div style="font-size: 0.7rem; color:var(--text-muted);" id="calcItemName">Item Name</div>
-    </div>
-    <span class="item-badge" id="calcCode">CODE</span>
+    <div><h4 id="calcTitle">Margin Calc</h4><div style="font-size: 0.7rem; color:var(--text-muted);" id="calcItemName">Item</div></div>
+    <span style="background:var(--primary); font-size:0.7rem; padding:2px 8px; border-radius:4px;" id="calcCode">CODE</span>
   </div>
-
-  <div class="calc-field">
-    <label>User Input (Selling Price)</label>
-    <div class="input-wrapper">
-      <i class="fa-solid fa-tag"></i>
-      <input type="number" id="calcInput" class="calc-input" placeholder="0.00" />
-    </div>
+  <div style="margin-bottom:16px;">
+    <label style="font-size:0.75rem; color:var(--text-muted);">Selling Price</label>
+    <input type="number" id="calcInput" class="calc-input" placeholder="0.00" />
   </div>
-
-  <div class="calc-field">
-    <label>Base Price (Cost)</label>
-    <div class="input-wrapper">
-      <i class="fa-solid fa-dollar-sign"></i>
-      <input type="number" id="calcPrice" class="calc-input" placeholder="0.00" />
-    </div>
+  <div>
+    <label style="font-size:0.75rem; color:var(--text-muted);">Cost Price</label>
+    <input type="number" id="calcPrice" class="calc-input" placeholder="0.00" />
   </div>
-
   <div class="result-box">
-    <div class="result-label">PROFIT MARGIN</div>
+    <div style="font-size:0.75rem; margin-bottom:4px;">PROFIT MARGIN</div>
     <div class="result-val" id="calcResult">0.00%</div>
   </div>
-  
-  <div class="calc-footer">
-    Press <strong style="color:#fff">ENTER</strong> to save & copy
-  </div>
+  <div style="margin-top:16px; text-align:center; font-size:0.7rem; color:var(--text-muted);">Press <strong>ENTER</strong> to save</div>
 </div>
 
 <div id="toast" class="toast">
@@ -438,20 +471,31 @@ tr.selected-row {
 </div>
 
 <script type="module">
+// --- IMPORTS ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
-import { getFirestore, collection, onSnapshot, query, orderBy, updateDoc, doc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-analytics.js";
+import { getFirestore, collection, onSnapshot, query, orderBy, limit, updateDoc, doc, addDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
-const firebaseConfig={
-  apiKey:"AIzaSyA5o9ttyPpOmRu0zVSUJ6g3H1mf05FkgW4",
-  authDomain:"reps-a1259.firebaseapp.com",
-  projectId:"reps-a1259"
+// --- CONFIG ---
+const firebaseConfig = {
+  apiKey: "AIzaSyA5o9ttyPpOmRu0zVSUJ6g3H1mf05FkgW4",
+  authDomain: "reps-a1259.firebaseapp.com",
+  databaseURL: "https://reps-a1259-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "reps-a1259",
+  storageBucket: "reps-a1259.firebasestorage.app",
+  messagingSenderId: "537453276765",
+  appId: "1:537453276765:web:53ebf8674f1bd36a04e7b4",
+  measurementId: "G-1S0ME1X96X"
 };
 
+// Initialize
 const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
 const db = getFirestore(app);
 
-// DOM Elements
+// DOM
 const ordersDiv = document.getElementById("orders");
+const invoicesDiv = document.getElementById("invoices");
 const modal = document.getElementById("modal");
 const sheet = document.getElementById("sheet");
 const calcBox = document.getElementById("calcBox");
@@ -460,79 +504,148 @@ const calcPrice = document.getElementById("calcPrice");
 const calcResult = document.getElementById("calcResult");
 const toast = document.getElementById("toast");
 const toastMsg = document.getElementById("toastMsg");
-const toastIcon = document.getElementById("toastIcon");
+const inputModal = document.getElementById("inputModal");
+const nvatInput = document.getElementById("nvatInput");
+
+// Toggle Logic Elements
+const toggleBtn = document.getElementById("toggleBtn");
+const completedHeader = document.getElementById("completedHeader");
 
 // State
 let currentItems = [];
-let currentIndex = 0; // For calc row navigation
+let currentIndex = 0;
 let currentDocId = "";
 let currentOrderData = {};
-let copyStep = 0; // For sequential copying
+let copyStep = 0;
+let outOfStockIndices = new Set(); 
+let isCompletedSectionVisible = false; // Default Hidden
 
-// 1. Fetch Orders
+// --- TOGGLE LOGIC ---
+function toggleCompleted() {
+  isCompletedSectionVisible = !isCompletedSectionVisible;
+  if(isCompletedSectionVisible) {
+    invoicesDiv.classList.remove("hidden");
+    completedHeader.classList.remove("hidden"); // Show Header
+    toggleBtn.innerText = "-";
+  } else {
+    invoicesDiv.classList.add("hidden");
+    completedHeader.classList.add("hidden"); // Hide Header
+    toggleBtn.innerText = "+";
+  }
+}
+
+// Keep click for UI consistency, but keyboard is main
+toggleBtn.onclick = (e) => { e.stopPropagation(); toggleCompleted(); };
+completedHeader.onclick = toggleCompleted;
+
+
+// --- BLOCK CONTEXT MENU ---
+document.addEventListener('contextmenu', event => event.preventDefault());
+
+// 1. Fetch Pending Orders (Not Completed Section)
 onSnapshot(query(collection(db, "orders"), orderBy("timestamp", "desc")), snap => {
   ordersDiv.innerHTML = "";
   snap.forEach(d => {
     const data = d.data();
-    const card = document.createElement("div");
-    card.className = "order-card";
-    
-    const date = new Date(data.timestamp?.seconds * 1000 || Date.now()).toLocaleDateString();
-    
-    // Count only real items for stats (excluding MSG)
-    const realItemCount = (data.items || []).filter(i => i.code !== "MSG").length;
-
-    card.innerHTML = `
-      <div class="card-top">
-        <span class="order-id">#${d.id.slice(-6).toUpperCase()}</span>
-        <span class="timestamp">${date}</span>
-      </div>
-      <div class="customer-name" title="${data.customer?.name}">${data.customer?.name || "Unknown Customer"}</div>
-      
-      <div class="stats">
-        <div class="stat-pill"><i class="fa-solid fa-user-tie"></i> ${data.rep || "Direct"}</div>
-        <div class="stat-pill"><i class="fa-solid fa-box"></i> ${realItemCount} Items</div>
-      </div>
-      
-      <div class="card-footer">
-        <span class="total-label">Total Value</span>
-        <span class="total-amount">LKR ${(data.grandTotal || 0).toLocaleString()}</span>
-      </div>
-    `;
-    card.onclick = () => openOrder(d.id, data);
+    const card = createCard(d.id, data, false);
     ordersDiv.appendChild(card);
   });
 });
 
-// 2. Open Order Modal
-function openOrder(id, data) {
+// 2. Fetch Completed Invoices (Completed Section)
+onSnapshot(query(collection(db, "invoices"), orderBy("timestamp", "desc"), limit(50)), snap => {
+  invoicesDiv.innerHTML = "";
+  snap.forEach(d => {
+    const data = d.data();
+    const card = createCard(d.id, data, true);
+    invoicesDiv.appendChild(card);
+  });
+});
+
+// Helper: Create Card HTML
+function createCard(id, data, isCompleted) {
+  const card = document.createElement("div");
+  card.className = `order-card ${isCompleted ? 'completed' : ''}`;
+  const date = new Date(data.timestamp?.seconds * 1000 || Date.now()).toLocaleDateString();
+  const realItemCount = (data.items || []).filter(i => i.code !== "MSG").length;
+  
+  // Calculate total
+  let displayTotal = data.grandTotal;
+  if (!displayTotal && data.items) {
+      displayTotal = data.items.reduce((acc, i) => acc + (parseFloat(i.price || 0) * (i.qty || 0)), 0);
+  }
+
+  // --- TOP CONTENT LOGIC ---
+  let topContent = '';
+  
+  if (isCompleted) {
+    topContent = `
+      <span class="timestamp">${date}</span>
+      <span class="invoice-tag">#${data.invoiceNumber}</span>
+    `;
+  } else {
+    topContent = `
+      <span class="order-id">#${id.slice(-6).toUpperCase()}</span>
+      <span class="timestamp">${date}</span>
+    `;
+  }
+
+  card.innerHTML = `
+    <div class="card-top">
+      ${topContent}
+    </div>
+    <div class="customer-name" title="${data.customer?.name}">${data.customer?.name || "Unknown"}</div>
+    <div class="stats">
+      <div class="stat-pill"><i class="fa-solid fa-user-tie"></i> ${data.rep || "Direct"}</div>
+      <div class="stat-pill"><i class="fa-solid fa-box"></i> ${realItemCount} Items</div>
+    </div>
+    <div class="card-footer">
+      <div style="display: flex; flex-direction: column;">
+        <span style="font-size:0.75rem; color:var(--text-muted);">${isCompleted ? 'INVOICED' : 'TOTAL'}</span>
+        ${isCompleted ? `<span style="font-size: 0.75rem; color: var(--success); font-family: 'JetBrains Mono';">INV: ${data.invoiceNumber}</span>` : ''}
+      </div>
+      <span class="total-amount">LKR ${(displayTotal || 0).toLocaleString()}</span>
+    </div>
+  `;
+  
+  // Allow opening for both, pass isCompleted flag
+  card.onclick = () => openOrder(id, data, isCompleted);
+  
+  return card;
+}
+
+// 3. Open Order Modal
+function openOrder(id, data, isReadOnly = false) {
   currentDocId = id;
   currentOrderData = data;
-  copyStep = 0; // Reset sequential copy counter
+  copyStep = 0;
+  outOfStockIndices.clear(); 
   
-  // --- SEPARATION LOGIC ---
   const rawItems = data.items || [];
   const msgItem = rawItems.find(item => item.code === "MSG");
   const msgContent = msgItem ? msgItem.desc : (data.notes || "No special instructions.");
   currentItems = rawItems.filter(item => item.code !== "MSG");
-  
   currentIndex = 0;
   
-  // Build Modal Content
+  const titleText = isReadOnly ? `INVOICE: ${data.invoiceNumber}` : `ORDER #${id.slice(-6).toUpperCase()}`;
+  const nvatBtnDisplay = isReadOnly ? "none" : "flex";
+
   sheet.innerHTML = `
     <div class="sheet-head">
-      <div>
-        <div style="font-size:0.8rem; color:var(--secondary); margin-bottom:4px;">ORDER #${id.slice(-6).toUpperCase()}</div>
+      <div class="sheet-head-left">
+        <div style="font-size:0.8rem; color:${isReadOnly ? 'var(--success)' : 'var(--secondary)'}; margin-bottom:4px;">${titleText}</div>
         <h2 class="customer-name-header">${data.customer?.name || "Customer"}</h2>
         <div class="customer-address">${data.customer?.address || ""}</div>
       </div>
-      <button class="close-btn" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+      <div class="sheet-actions">
+        <button id="nvatBtn" class="nvat-btn" style="display:${nvatBtnDisplay}"><i class="fa-solid fa-file-invoice"></i> NVAT</button>
+        <button class="close-btn" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
     </div>
 
-    <div class="sheet-body">
-      
+    <div class="sheet-body" id="sheetBody">
       <div class="msg-section">
-        <div class="msg-icon"><i class="fa-regular fa-comment-dots"></i></div>
+        <div style="font-size:1.2rem; color:var(--primary);"><i class="fa-regular fa-comment-dots"></i></div>
         <div class="msg-content">
           <h4>Order Notes</h4>
           <p>${msgContent}</p>
@@ -540,21 +653,14 @@ function openOrder(id, data) {
       </div>
 
       <div class="info-grid">
-        <div class="info-box"><label>Code</label><div>${data.customer?.code || "-"}</div></div>
-        <div class="info-box"><label>Rep</label><div>${data.rep || "-"}</div></div>
-        <div class="info-box"><label>Date</label><div>${new Date(data.timestamp?.seconds * 1000).toLocaleDateString()}</div></div>
+        <div class="info-box" id="box-code"><label>Code</label><div>${data.customer?.code || "-"}</div></div>
+        <div class="info-box" id="box-rep"><label>Rep</label><div>${data.rep || "-"}</div></div>
+        <div class="info-box" id="box-date"><label>Date</label><div>${new Date(data.timestamp?.seconds * 1000).toLocaleDateString()}</div></div>
       </div>
 
       <div class="table-container">
-        <table id="itemsTable">
-          <thead>
-            <tr>
-              <th>Code</th>
-              <th>Description</th>
-              <th class="col-right">Qty</th>
-              <th class="col-right">Price</th>
-            </tr>
-          </thead>
+        <table>
+          <thead><tr><th>Code</th><th>Description</th><th class="col-right">Qty</th><th class="col-right">Price</th></tr></thead>
           <tbody>
             ${currentItems.map((item, idx) => `
               <tr id="row-${idx}" data-index="${idx}">
@@ -570,27 +676,22 @@ function openOrder(id, data) {
     </div>
   `;
 
-  // Attach generic Copy click listener to the whole sheet
   sheet.onclick = handleInvoiceClick;
-  
-  // Disable selection on mousedown if Ctrl is held
-  sheet.onmousedown = (e) => {
-    if (e.ctrlKey) {
-      e.preventDefault(); // This is the key line to disable browser selection
-    }
-  };
-
+  sheet.onmousedown = (e) => { if (e.ctrlKey) e.preventDefault(); };
   sheet.oncontextmenu = handleRightClick;
+  
+  if(!isReadOnly) {
+    document.getElementById("nvatBtn").onclick = openInputModal;
+  }
 
   modal.style.display = "flex";
   setTimeout(() => modal.classList.add("active"), 10);
 }
 
-// 3. Highlight Selected Row
+// 4. Highlight & Scroll
 function highlightRow(index) {
   const allRows = sheet.querySelectorAll("tbody tr");
   allRows.forEach(r => r.classList.remove("selected-row"));
-  
   const targetRow = document.getElementById(`row-${index}`);
   if(targetRow) {
     targetRow.classList.add("selected-row");
@@ -598,83 +699,66 @@ function highlightRow(index) {
   }
 }
 
-// --- MAIN CLICK LOGIC (CTRL vs NORMAL) ---
+// 5. Main Click Logic
 function handleInvoiceClick(e) {
-  // Ignore clicks on buttons (close) or inputs (calc)
   if (e.target.closest("button") || e.target.closest("input")) return;
-  
-  // === 1. CTRL + LEFT CLICK (Specific Section Copy) ===
+
+  // === MARK RED (OUT OF STOCK) ===
+  if (e.shiftKey) {
+    e.preventDefault();
+    e.stopPropagation();
+    const tr = e.target.closest("tr[data-index]");
+    if (tr) {
+      const idx = parseInt(tr.dataset.index);
+      if (outOfStockIndices.has(idx)) {
+        outOfStockIndices.delete(idx);
+        tr.classList.remove("out-of-stock");
+        showToast("Marked: Available (Will go to Completed)", true);
+      } else {
+        outOfStockIndices.add(idx);
+        tr.classList.add("out-of-stock");
+        showToast("Marked: Out of Stock (Stays in Not Completed)", false);
+      }
+    }
+    return;
+  }
+
+  // === COPY LOGIC ===
   if (e.ctrlKey) {
     e.preventDefault();
     e.stopPropagation();
-
     let textToCopy = "";
     const target = e.target;
-
-    // Check where user clicked
-    
-    // A. Table Cell (Item Code, Qty, Desc, Price)
-    const td = target.closest("td");
-    if (td) {
-      textToCopy = td.innerText.trim();
-      // If user clicked row, highlight it too
+    const infoBox = target.closest(".info-box");
+    if (infoBox) {
+      const label = infoBox.querySelector("label")?.innerText;
+      const valDiv = infoBox.querySelector("div");
+      if (label === "REP" && valDiv) textToCopy = valDiv.innerText.trim().slice(-6); 
+      else if (valDiv) textToCopy = valDiv.innerText.trim();
+    } else if (target.closest("td")) {
+      textToCopy = target.closest("td").innerText.trim();
       const tr = target.closest("tr");
-      if (tr) {
-         const idx = parseInt(tr.dataset.index);
-         highlightRow(idx);
-         currentIndex = idx;
-      }
-    } 
-    // B. Info Boxes (Customer Code, Rep, Date)
-    else {
-      const infoBox = target.closest(".info-box");
-      if (infoBox) {
-        // Find the value div (2nd child or div inside)
-        const valDiv = infoBox.querySelector("div");
-        if(valDiv) textToCopy = valDiv.innerText.trim();
-      }
-      // C. Customer Name Header
-      else if (target.closest(".customer-name-header")) {
-        textToCopy = target.closest(".customer-name-header").innerText.trim();
-      }
-      // D. Customer Address
-      else if (target.closest(".customer-address")) {
-        textToCopy = target.closest(".customer-address").innerText.trim();
-      }
-      // E. Fallback: Copy generic text content of clicked element
-      else if (target.innerText && target.innerText.trim().length > 0) {
-        textToCopy = target.innerText.trim();
-      }
+      if(tr) highlightRow(parseInt(tr.dataset.index));
     }
-
-    if (textToCopy) {
-      navigator.clipboard.writeText(textToCopy).then(() => {
-        showToast("Copied: " + textToCopy, true);
-      });
-    }
-    return; // Stop here, do not run sequential logic
+    if (textToCopy) navigator.clipboard.writeText(textToCopy).then(() => showToast(`Copied: ${textToCopy}`, true));
+    return;
   }
 
-  // === 2. NORMAL CLICK (Sequential Copy) ===
-  // Ignore if user is manually selecting text
   if (window.getSelection().toString().length > 0) return;
 
   let textToCopy = "";
   let feedback = "";
 
   if (copyStep === 0) {
+    document.getElementById("sheetBody").scrollTop = 0; 
     textToCopy = currentOrderData.customer?.code || "";
     feedback = "Copied Cust Code";
     copyStep++;
-  } 
-  else if (copyStep === 1) {
-    const repStr = currentOrderData.rep || "";
-    const match = repStr.trim().slice(-6); 
-    textToCopy = match;
+  } else if (copyStep === 1) {
+    textToCopy = (currentOrderData.rep || "").trim().slice(-6); 
     feedback = "Copied Rep ID";
     copyStep++;
-  } 
-  else {
+  } else {
     const adjustedStep = copyStep - 2;
     const itemIndex = Math.floor(adjustedStep / 2);
     const isQty = (adjustedStep % 2 !== 0);
@@ -682,11 +766,10 @@ function handleInvoiceClick(e) {
     if (itemIndex < currentItems.length) {
       const item = currentItems[itemIndex];
       highlightRow(itemIndex);
-      currentIndex = itemIndex; // Sync calc index
-
+      currentIndex = itemIndex; 
       if (!isQty) {
         textToCopy = item.code;
-        feedback = `Copied Item Code (${item.code})`;
+        feedback = `Copied Code (${item.code})`;
       } else {
         textToCopy = item.qty.toString();
         feedback = `Copied Qty (${item.qty})`;
@@ -698,46 +781,107 @@ function handleInvoiceClick(e) {
     }
   }
 
-  if(textToCopy) {
-    navigator.clipboard.writeText(textToCopy).then(() => {
-      showToast(feedback, true);
-    }).catch(err => {
-      console.error("Copy failed", err);
-      showToast("Copy Failed", false);
-    });
+  if(textToCopy) navigator.clipboard.writeText(textToCopy).then(() => showToast(feedback, true));
+}
+
+// 6. Right Click
+function handleRightClick(e) {
+  e.preventDefault(); 
+  const tr = e.target.closest("tr[data-index]");
+  if (e.ctrlKey && tr) {
+    const idx = parseInt(tr.dataset.index);
+    currentIndex = idx; 
+    highlightRow(idx);  
+    openCalc(idx);
   }
 }
 
-// --- RIGHT CLICK LOGIC (CALCULATOR) ---
-function handleRightClick(e) {
-  // === CTRL + RIGHT CLICK = OPEN CALCULATOR ===
-  if (e.ctrlKey) {
-    const tr = e.target.closest("tr[data-index]");
-    if (tr) {
-      e.preventDefault(); // Stop default context menu
-      const idx = parseInt(tr.dataset.index);
-      currentIndex = idx; 
-      highlightRow(idx);  
-      openCalc(idx);
-    }
-  } 
-  // Normal Right Click = Default Context Menu
+// 7. NVAT Logic
+window.openInputModal = function(e) {
+  if(e) e.stopPropagation();
+  nvatInput.value = "";
+  inputModal.style.display = "flex";
+  setTimeout(() => inputModal.classList.add("active"), 10);
+  nvatInput.focus();
 }
 
-// 4. Calculator Logic
+window.closeInputModal = function() {
+  inputModal.classList.remove("active");
+  setTimeout(() => inputModal.style.display = "none", 300);
+}
+
+window.submitNVAT = async function() {
+  const invoiceNum = nvatInput.value.trim();
+  if (!invoiceNum) {
+    showToast("Please enter Invoice Number", false);
+    return;
+  }
+  closeInputModal();
+  await processNVAT(invoiceNum);
+}
+
+// === MAIN SPLIT LOGIC ===
+async function processNVAT(invoiceNum) {
+  const filledItems = [];    
+  const retainedItems = [];  
+
+  currentItems.forEach((item, idx) => {
+    if (outOfStockIndices.has(idx)) {
+      retainedItems.push(item);
+    } else {
+      filledItems.push(item);
+    }
+  });
+
+  if (filledItems.length === 0) {
+    showToast("No available items to invoice", false);
+    return;
+  }
+
+  try {
+    // 1. SAVE TO COMPLETED SECTION
+    await addDoc(collection(db, "invoices"), {
+      invoiceNumber: invoiceNum,
+      originalOrderId: currentDocId,
+      customer: currentOrderData.customer,
+      items: filledItems, 
+      grandTotal: filledItems.reduce((acc, i) => acc + (parseFloat(i.price)*parseFloat(i.qty)), 0),
+      rep: currentOrderData.rep,
+      timestamp: serverTimestamp(),
+      type: "NVAT"
+    });
+
+    // 2. HANDLE NOT COMPLETED SECTION
+    if (retainedItems.length === 0) {
+      await deleteDoc(doc(db, "orders", currentDocId));
+      showToast("Order Fully Completed!", true);
+    } else {
+      await updateDoc(doc(db, "orders", currentDocId), {
+        items: retainedItems, 
+        status: "Partial",
+        lastUpdated: serverTimestamp()
+      });
+      showToast("Invoice Saved. Red items stayed in Pending.", true);
+    }
+    
+    closeModal();
+
+  } catch (err) {
+    console.error(err);
+    showToast("Error saving data.", false);
+  }
+}
+
+// 8. Calculator
 function openCalc(index) {
   const item = currentItems[index];
   if (!item) return;
-
   highlightRow(index);
-
   document.getElementById("calcCode").innerText = item.code;
   document.getElementById("calcItemName").innerText = item.desc;
-  
   calcPrice.value = item.price; 
   calcInput.value = ""; 
   calcResult.innerText = "0.00%";
-
   calcBox.style.display = "block";
   setTimeout(() => calcBox.classList.add("show"), 10);
   calcInput.focus();
@@ -746,17 +890,11 @@ function openCalc(index) {
 function calculate() {
   const inputVal = parseFloat(calcInput.value);
   const priceVal = parseFloat(calcPrice.value);
-
-  if (!inputVal || !priceVal) {
-    calcResult.innerText = "0.00%";
-    return;
-  }
-
+  if (!inputVal || !priceVal) return;
   const result = ((inputVal - priceVal) / inputVal * 100).toFixed(2);
   calcResult.innerText = `${result}%`;
   calcResult.style.color = result < 0 ? "#ef4444" : "#10b981";
 }
-
 calcInput.oninput = calculate;
 calcPrice.oninput = calculate;
 
@@ -765,76 +903,61 @@ function closeCalc() {
   setTimeout(() => calcBox.style.display = "none", 200);
 }
 
-// 5. Global Events
-document.addEventListener("keydown", (e) => {
-  if (modal.style.display === "flex") {
-    
-    const isCalcOpen = calcBox.style.display === "block";
-
-    if (e.key === "Enter" && isCalcOpen) {
-      saveAndCloseCalc();
-      return;
-    }
-
-    if (e.code === "Space") {
-      if(e.target.tagName !== "INPUT") e.preventDefault(); 
-
-      if (!isCalcOpen) {
-         if (currentIndex < currentItems.length) {
-           openCalc(currentIndex);
-         } else {
-           showToast("No more items", false);
-         }
-      } 
-    }
-  }
-});
-
 async function saveAndCloseCalc() {
   const input = parseFloat(calcInput.value);
   const item = currentItems[currentIndex];
-  
   const resultTxt = calcResult.innerText.replace(/[^\d.-]/g, "");
   await navigator.clipboard.writeText(resultTxt);
-
-  const finalPrice = parseFloat(calcPrice.value);
-  
   await updateDoc(doc(db, "orders", currentDocId), {
-    [`calculations.${item.code}`]: {
-      input: input,
-      basePrice: finalPrice,
-      margin: resultTxt
-    }
+    [`calculations.${item.code}`]: { input, basePrice: parseFloat(calcPrice.value), margin: resultTxt }
   });
-
   closeCalc();
   currentIndex++; 
 }
 
-// Click Outside Logic
-document.addEventListener('click', (event) => {
-  const isCalcOpen = calcBox.style.display === "block";
-  if (isCalcOpen && !calcBox.contains(event.target) && !event.target.closest('tr')) {
-    closeCalc();
+// 9. Global Events
+document.addEventListener("keydown", (e) => {
+  // Prevent triggers when typing in inputs
+  if (e.target.tagName === "INPUT") {
+    if (inputModal.style.display === "flex") {
+      if (e.key === "Enter") submitNVAT();
+      if (e.key === "Escape") closeInputModal();
+    }
+    return;
+  }
+
+  // KEY "h" or "H" -> TOGGLE COMPLETED SECTION
+  if (e.key.toLowerCase() === "h") {
+    toggleCompleted();
+    return;
+  }
+
+  // KEY "+" -> OPEN NVAT (Only if Modal is Active)
+  if (e.key === "+" || e.code === "NumpadAdd") {
+    if (modal.style.display === "flex") {
+      e.preventDefault();
+      openInputModal();
+    }
+    return;
+  }
+
+  if (modal.style.display === "flex") {
+    const isCalcOpen = calcBox.style.display === "block";
+    if (e.key === "Enter" && isCalcOpen) { saveAndCloseCalc(); return; }
+    if (e.code === "Space" && !isCalcOpen) {
+      e.preventDefault();
+      if (currentIndex < currentItems.length) openCalc(currentIndex);
+    }
   }
 });
 
 let toastTimeout;
 function showToast(msg, isSuccess = false) {
   toastMsg.innerText = msg;
-  if(isSuccess) {
-    toast.classList.add("success");
-    toastIcon.className = "fa-solid fa-check";
-  } else {
-    toast.classList.remove("success");
-    toastIcon.className = "fa-solid fa-triangle-exclamation";
-  }
-  
-  toast.classList.add("active");
+  toast.className = `toast ${isSuccess ? 'success' : ''} active`;
+  toastIcon.className = isSuccess ? "fa-solid fa-check" : "fa-solid fa-triangle-exclamation";
   clearTimeout(toastTimeout);
-  toastTimeout = setTimeout(() => {
-    toast.classList.remove("active");
-  }, 2000); 
+  toastTimeout = setTimeout(() => toast.classList.remove("active"), 2000); 
 }
 
 window.closeModal = () => {
@@ -843,11 +966,7 @@ window.closeModal = () => {
   closeCalc();
 };
 
-window.onclick = (e) => {
-  if (e.target === modal) window.closeModal();
-};
-
+window.onclick = (e) => { if (e.target === modal) window.closeModal(); };
 </script>
-
 </body>
 </html>
