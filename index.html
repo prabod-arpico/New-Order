@@ -3,16 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>New Order | Prabodfx</title>
+    <title>New Order | Premium Portal</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600&family=Outfit:wght@300;400;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
     
     <style>
         :root {
             --primary-glow: #4f46e5; 
             --accent-blue: #0ea5e9;   
             --accent-purple: #8b5cf6; 
+            --accent-gold: #fbbf24;
             --bg-deep: #030014;       
             
             --glass-surface: rgba(255, 255, 255, 0.03);
@@ -44,13 +48,11 @@
         /* --- UI HELPERS --- */
         .text-center { text-align: center; }
         
-        /* --- STATUS INDICATOR (UPDATED LOGIC) --- */
+        /* --- STATUS INDICATOR --- */
         #netStatus {
             position: fixed; top: 20px; right: 20px; z-index: 10001;
             width: 14px; height: 14px; border-radius: 50%;
             transition: background-color 0.2s ease, box-shadow 0.2s ease;
-            
-            /* Checking State (Yellow) */
             background-color: #f1c40f;
             box-shadow: 0 0 15px #f1c40f;
         }
@@ -74,7 +76,7 @@
             cursor: pointer;
         }
 
-        /* --- NEW TOAST NOTIFICATION (Replaces blocking popup) --- */
+        /* --- TOAST NOTIFICATION --- */
         #status-toast {
             position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px);
             background: rgba(15, 23, 42, 0.95);
@@ -196,13 +198,6 @@
             backdrop-filter: blur(10px);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-        .glass-card::before {
-            content:''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-            background: radial-gradient(circle at center, rgba(14,165,233,0.03), transparent 60%);
-            pointer-events: none; z-index: 0;
-        }
-        .glass-card > * { position: relative; z-index: 1; }
-
         h2 { 
             font-family: 'Outfit'; font-weight: 600; margin-bottom: 25px; 
             color: #fff; display: flex; align-items: center; gap: 12px; font-size: 1.3rem; 
@@ -216,8 +211,6 @@
         /* --- INPUTS --- */
         .form-group { margin-bottom: 25px; position: relative; }
         
-        #group-cust { z-index: 1000 !important; }
-
         label { 
             display: block; font-size: 0.7rem; color: var(--text-muted); 
             margin-bottom: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; 
@@ -417,7 +410,7 @@
         .ps-total-val { font-family: 'Outfit'; font-weight: 700; font-size: 2rem; color: var(--accent-blue); line-height: 1; text-shadow: 0 0 30px rgba(14,165,233,0.4); }
         .ps-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
 
-        /* Warning/Error Modal (Red) */
+        /* Warning/Error Modal */
         .modal-content.warning { 
             border-color: #ef4444; box-shadow: 0 0 50px rgba(239, 68, 68, 0.2); 
             text-align: center; padding: 40px;
@@ -426,7 +419,7 @@
         .warning-title { color: #ef4444; font-family:'Outfit'; margin-bottom:10px; text-align: center; width: 100%; display: block; }
         .warning-text { color: #cbd5e1; margin-bottom: 25px; font-size: 1.1rem; text-align: center; }
 
-        /* --- REDESIGNED HISTORY CARD (NEW) --- */
+        /* --- HISTORY CARD DESIGN --- */
         .history-card {
             background: rgba(17, 24, 39, 0.6);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -446,6 +439,16 @@
             color: var(--accent-blue);
             margin-bottom: 4px;
             text-transform: uppercase;
+        }
+        .h-rep-name {
+            color: var(--accent-gold); 
+            font-weight: 700; 
+            font-size: 0.95rem; /* Bigger Rep Name */
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            text-shadow: 0 0 10px rgba(251, 191, 36, 0.2);
+            display: flex; align-items: center; gap: 6px;
         }
         .h-meta-date { color: #94a3b8; font-size: 0.8rem; text-align: right; }
         .h-meta-total { 
@@ -485,7 +488,7 @@
             padding: 2px 8px; border-radius: 6px; font-weight: 700; font-size: 0.75rem;
         }
         .h-actions {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 15px;
+            display: grid; grid-template-columns: 1fr 1fr auto; gap: 15px;
         }
         .btn-h-del {
             background: transparent; border: 1px solid rgba(255,255,255,0.1);
@@ -503,6 +506,54 @@
             display: flex; align-items: center; justify-content: center; gap: 8px;
         }
         .btn-h-mod:hover { background: rgba(14, 165, 233, 0.15); box-shadow: 0 0 15px rgba(14, 165, 233, 0.2); }
+        
+        .btn-h-pdf {
+            background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff; border-radius: 8px; padding: 0 15px;
+            font-size: 1rem; font-weight: 600; cursor: pointer;
+            transition: all 0.2s;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .btn-h-pdf:hover { background: #fff; color: #000; }
+
+        /* Filter Controls */
+        .history-controls {
+            padding: 15px;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex; gap: 10px; flex-direction: column;
+        }
+        
+        /* Premium Dropdown Style */
+        .premium-filter-select {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(0,0,0,0.3));
+            border: 1px solid var(--accent-blue);
+            border-radius: 10px;
+            color: #fff;
+            font-family: 'Outfit';
+            font-size: 0.95rem;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .premium-filter-select:focus { box-shadow: 0 0 15px rgba(14,165,233,0.3); }
+        .premium-filter-select option { background: #0f172a; color: #fff; padding: 10px; }
+
+        .btn-bulk-download {
+            width: 100%;
+            background: linear-gradient(90deg, #1e3a8a, #1e40af);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white; padding: 12px;
+            border-radius: 10px;
+            font-weight: 700; letter-spacing: 1px;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            transition: all 0.3s;
+        }
+        .btn-bulk-download:hover { background: #1e40af; box-shadow: 0 0 20px rgba(30, 58, 138, 0.5); }
 
         /* --- MEDIA QUERIES --- */
         @media (min-width: 1024px) {
@@ -514,6 +565,7 @@
             #desktopSuggestionsPanel { display: flex !important; transform: none !important; }
             .mobile-suggestions { display: none !important; }
             .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+            .history-controls { flex-direction: row; align-items: flex-end; } /* Aligns REPORT btn to bottom */
         }
 
         @media (max-width: 1023px) {
@@ -586,6 +638,21 @@
             <div id="historyModalTitle" class="modal-header" style="text-align:center; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:15px; margin-bottom:15px; font-family:'Outfit'; color:var(--accent-blue); font-size:1.2rem; font-weight:700;">
                 ORDER HISTORY
             </div>
+            
+            <div id="historyControls" class="history-controls" style="display:none;">
+                <div style="flex: 2;">
+                    <label style="margin-bottom: 5px; color: var(--accent-gold);">Filter by Representative:</label>
+                    <select id="historyRepFilter" class="premium-filter-select">
+                        <option value="ALL">Show All Representatives</option>
+                    </select>
+                </div>
+                <div style="flex: 1; display:flex;">
+                    <button onclick="downloadDetailedReport()" class="btn-bulk-download">
+                        <i class="fa-solid fa-file-pdf"></i> REPORT
+                    </button>
+                </div>
+            </div>
+
             <div id="historyContent">Loading...</div>
             <div class="modal-actions" style="margin-top: 20px;">
                 <button class="btn btn-cancel" onclick="closeModal('historyModal')" style="width:100%">CLOSE PANEL</button>
@@ -681,7 +748,7 @@
     </div>
 
     <script type="module">
-        // --- SERVICE WORKER REGISTRATION ---
+        // --- SERVICE WORKER & OFFLINE QUEUE ---
         const OFFLINE_KEY = "offlineOrdersQueue";
 
         function getOfflineOrders(){
@@ -736,14 +803,14 @@
 
         document.getElementById('currentDate').innerText = new Date().toLocaleDateString();
 
-        // --- NEW TOAST SYSTEM ---
+        // --- TOAST SYSTEM ---
         function showToast(message, type = 'info') {
             const toast = document.getElementById('status-toast');
             const msgSpan = document.getElementById('toast-message');
             const icon = toast.querySelector('.toast-icon');
 
             msgSpan.innerText = message;
-            toast.className = ''; // Reset classes
+            toast.className = ''; 
             toast.classList.add('show');
 
             if(type === 'success') {
@@ -762,18 +829,15 @@
                  icon.style.color = '#8b5cf6';
             }
 
-            // Hide after 3 seconds
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
+            setTimeout(() => { toast.classList.remove('show'); }, 3000);
         }
 
-        // --- REAL-TIME NETWORK DETECTOR (GOOGLE DNS PING) ---
+        // --- AUTO SYNC & NETWORK DETECTOR ---
         let isOnline = false;
+        let wasOffline = false; // Flag to track transition
 
         async function checkRealInternetConnection() {
             try {
-                // Ping Google DNS
                 const response = await fetch('https://dns.google/resolve?name=google.com', {
                     method: 'GET',
                     cache: 'no-cache',
@@ -781,16 +845,23 @@
                 
                 if (response.ok) {
                     if(!isOnline) {
-                        // We just reconnected
-                        showToast("Connection Restored. Syncing...", "sync");
-                        processOfflineQueue();
+                        // We are coming back online
+                        setOnlineStatus(true);
+                        
+                        // AUTO SYNC LOGIC HERE
+                        if(getOfflineOrders().length > 0) {
+                            showToast("Online Detected. Auto-Syncing...", "sync");
+                            setTimeout(processOfflineQueue, 1000); // Small delay to ensure stability
+                        }
                     }
-                    setOnlineStatus(true);
+                    wasOffline = false;
                 } else {
                     setOnlineStatus(false);
+                    wasOffline = true;
                 }
             } catch (error) {
                 setOnlineStatus(false);
+                wasOffline = true;
             }
         }
 
@@ -798,24 +869,28 @@
             isOnline = online;
             const statusEl = document.getElementById('netStatus');
             if(online) {
-                statusEl.className = 'online';
-                statusEl.title = "Online";
+                statusEl.className = 'online'; statusEl.title = "Online";
             } else {
-                statusEl.className = 'offline';
-                statusEl.title = "Offline";
+                statusEl.className = 'offline'; statusEl.title = "Offline";
             }
         }
 
-        // --- GLOBAL CLICK LISTENER: CLOSE SUGGESTIONS ---
+        // --- GLOBAL CLICK LISTENER ---
         document.addEventListener('click', function(event) {
             const target = event.target;
             const isInput = target.tagName === 'INPUT';
             const isSuggestionBox = target.closest('.mobile-suggestions');
             
+            // Close suggestions if clicked outside
             if (!isInput && !isSuggestionBox) {
                 document.querySelectorAll('.mobile-suggestions').forEach(el => {
                     el.style.display = 'none';
                 });
+            }
+            
+            // Close Modals if clicked on overlay
+            if (target.classList.contains('modal-overlay')) {
+                target.classList.remove('open');
             }
         });
 
@@ -824,8 +899,10 @@
             document.querySelectorAll('input').forEach(i => i.value = '');
             const repSel = document.getElementById('repSelect');
             if(repSel) repSel.selectedIndex = 0;
+            // Load saved rep
             const savedRep = localStorage.getItem('lastRep');
             if(savedRep && repSel) repSel.value = savedRep;
+            
             document.getElementById('itemsContainer').innerHTML = ''; 
             document.getElementById('totalQty').innerText = '0';
             document.getElementById('grandTotal').innerText = '0.00';
@@ -835,34 +912,24 @@
         }
 
         // --- UI UTILS ---
-        window.closeModal = (id) => {
-            document.getElementById(id).classList.remove('open');
-        };
-
+        window.closeModal = (id) => { document.getElementById(id).classList.remove('open'); };
         window.showAlert = (msg) => {
             document.getElementById('alertMessage').innerText = msg;
             document.getElementById('alertModal').classList.add('open');
         };
 
-        document.querySelectorAll('.modal-overlay').forEach(overlay => {
-            overlay.addEventListener('click', (e) => {
-                if (e.target === overlay) {
-                    overlay.classList.remove('open');
-                }
-            });
-        });
-
-        // --- PENDING ORDERS LOGIC (LOCAL STORAGE) ---
+        // --- PENDING ORDERS LOGIC ---
         window.showPendingOrders = () => {
             const modal = document.getElementById('historyModal');
             const content = document.getElementById('historyContent');
             const title = document.getElementById('historyModalTitle');
-            
+            const controls = document.getElementById('historyControls');
+
             modal.classList.add('open');
             title.innerText = "PENDING UPLOADS (OFFLINE)";
+            controls.style.display = 'none'; 
             
             const queue = getOfflineOrders();
-            
             if (queue.length === 0) {
                 content.innerHTML = '<div style="text-align:center; padding:20px; color:#94a3b8;">No pending orders in local storage.</div>';
                 return;
@@ -881,7 +948,8 @@
                         <div class="h-header">
                             <div>
                                 <div class="h-cust-name">${data.customer.name}</div>
-                                <div class="status-badge pending">WAITING SYNC</div>
+                                <div class="h-rep-name"><i class="fa-solid fa-user-tie"></i> ${data.rep}</div>
+                                <div class="status-badge pending" style="margin-top:5px;">WAITING SYNC</div>
                             </div>
                             <div>
                                 <div class="h-meta-date">${date}</div>
@@ -890,12 +958,8 @@
                         </div>
                         <div class="h-items-preview">${itemsStr}</div>
                         <div class="h-actions">
-                            <button class="btn-h-del" onclick="deletePendingOrder(${index})">
-                                <i class="fa-solid fa-trash"></i> DELETE
-                            </button>
-                            <button class="btn-h-mod" onclick="syncPending()">
-                                <i class="fa-solid fa-rotate"></i> FORCE SYNC
-                            </button>
+                            <button class="btn-h-del" onclick="deletePendingOrder(${index})"><i class="fa-solid fa-trash"></i> DELETE</button>
+                            <button class="btn-h-mod" onclick="syncPending()"><i class="fa-solid fa-rotate"></i> FORCE SYNC</button>
                         </div>
                     </div>
                 `;
@@ -908,38 +972,45 @@
             const queue = getOfflineOrders();
             queue.splice(index, 1);
             setOfflineOrders(queue);
-            showPendingOrders(); // Refresh view
+            showPendingOrders(); 
             updatePendingBadge();
         };
 
         window.syncPending = () => {
-            if(!isOnline) {
-                showAlert("Still offline. Cannot sync.");
-                return;
-            }
+            if(!isOnline) { showAlert("Still offline. Cannot sync."); return; }
             closeModal('historyModal');
             processOfflineQueue();
         };
 
 
-        // --- HISTORY LOGIC (FIREBASE) ---
+        // --- HISTORY LOGIC ---
         let loadedHistoryOrders = []; 
+        let filteredHistoryOrders = []; 
+
+        document.getElementById('historyRepFilter').addEventListener('change', (e) => {
+            const val = e.target.value;
+            if(val === 'ALL') {
+                filteredHistoryOrders = [...loadedHistoryOrders];
+            } else {
+                filteredHistoryOrders = loadedHistoryOrders.filter(o => o.rep === val);
+            }
+            renderHistoryHTML();
+        });
 
         window.fetchHistory = async () => {
-            if(!isOnline) {
-                showAlert("History is only available when online.");
-                return;
-            }
+            if(!isOnline) { showAlert("History is only available when online."); return; }
             const modal = document.getElementById('historyModal');
             const content = document.getElementById('historyContent');
             const title = document.getElementById('historyModalTitle');
+            const controls = document.getElementById('historyControls');
             
             modal.classList.add('open');
             title.innerText = "ORDER HISTORY (ONLINE)";
+            controls.style.display = 'flex'; 
             content.innerHTML = '<div style="text-align:center"><div class="spinner"></div><br>Fetching Records...</div>';
 
             try {
-                const q = query(collection(db, "orders"), orderBy("timestamp", "desc"), limit(10));
+                const q = query(collection(db, "orders"), orderBy("timestamp", "desc"), limit(40));
                 const snapshot = await getDocs(q);
                 
                 if (snapshot.empty) {
@@ -948,82 +1019,232 @@
                 }
 
                 loadedHistoryOrders = [];
-                let html = '';
+                const repsFound = new Set();
+
                 snapshot.forEach(docSnap => {
                     const data = docSnap.data();
                     const docId = docSnap.id;
                     loadedHistoryOrders.push({ id: docId, ...data });
-                    
-                    const date = data.date || 'N/A';
-                    
-                    const itemsStr = data.items.map(i => {
-                        if(i.code === 'MSG') return `<div class="h-item-row"><span style="color:var(--accent-purple); font-style:italic;">${i.desc}</span></div>`;
-                        return `
-                            <div class="h-item-row">
-                                <span>${i.desc}</span>
-                                <span class="h-item-qty">X ${i.qty}</span>
-                            </div>
-                        `;
-                    }).join('');
-
-                    html += `
-                        <div class="history-card" id="card-${docId}">
-                            <div class="h-header">
-                                <div>
-                                    <div class="h-cust-name">${data.customer.name}</div>
-                                    <div class="status-badge">UPLOADED</div>
-                                </div>
-                                <div>
-                                    <div class="h-meta-date">${date}</div>
-                                    <div class="h-meta-total">${data.grandTotal.toFixed(2)}</div>
-                                </div>
-                            </div>
-                            
-                            <div class="h-items-preview">
-                                ${itemsStr}
-                            </div>
-
-                            <div class="h-actions">
-                                <button class="btn-h-del" onclick="deleteOrder('${docId}')">
-                                    <i class="fa-solid fa-trash"></i> DELETE
-                                </button>
-                                <button class="btn-h-mod" onclick="modifyOrder('${docId}')">
-                                    <i class="fa-solid fa-pen-to-square"></i> MODIFY / RE-ORDER
-                                </button>
-                            </div>
-                        </div>
-                    `;
+                    if(data.rep) repsFound.add(data.rep);
                 });
-                content.innerHTML = html;
+
+                // Populate Enhanced Dropdown
+                const filterSel = document.getElementById('historyRepFilter');
+                filterSel.innerHTML = '<option value="ALL">Show All Representatives</option>';
+                repsFound.forEach(r => {
+                    const opt = document.createElement('option');
+                    opt.value = opt.text = r;
+                    filterSel.appendChild(opt);
+                });
+
+                filteredHistoryOrders = [...loadedHistoryOrders];
+                renderHistoryHTML();
+
             } catch (e) {
                 content.innerHTML = `<div style="text-align:center; color:#ef4444;">Error loading history: ${e.message}</div>`;
             }
         };
 
+        function renderHistoryHTML() {
+            const content = document.getElementById('historyContent');
+            if (filteredHistoryOrders.length === 0) {
+                content.innerHTML = '<div style="text-align:center; padding:20px; color:#94a3b8;">No orders match this filter.</div>';
+                return;
+            }
+
+            let html = '';
+            filteredHistoryOrders.forEach(data => {
+                const docId = data.id;
+                const date = data.date || 'N/A';
+                
+                const itemsStr = data.items.map(i => {
+                    if(i.code === 'MSG') return `<div class="h-item-row"><span style="color:var(--accent-purple); font-style:italic;">${i.desc}</span></div>`;
+                    return `<div class="h-item-row"><span>${i.desc}</span><span class="h-item-qty">X ${i.qty}</span></div>`;
+                }).join('');
+
+                html += `
+                    <div class="history-card" id="card-${docId}">
+                        <div class="h-header">
+                            <div>
+                                <div class="h-cust-name">${data.customer.name}</div>
+                                <div class="h-rep-name"><i class="fa-solid fa-user-tie"></i> ${data.rep || 'Unknown'}</div>
+                                <div class="status-badge" style="margin-top:5px;">UPLOADED</div>
+                            </div>
+                            <div>
+                                <div class="h-meta-date">${date}</div>
+                                <div class="h-meta-total">${data.grandTotal.toFixed(2)}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="h-items-preview">${itemsStr}</div>
+
+                        <div class="h-actions">
+                            <button class="btn-h-del" onclick="deleteOrder('${docId}')"><i class="fa-solid fa-trash"></i> DELETE</button>
+                            <button class="btn-h-mod" onclick="modifyOrder('${docId}')"><i class="fa-solid fa-pen-to-square"></i> MODIFY</button>
+                            <button class="btn-h-pdf" onclick="downloadSinglePDF('${docId}')"><i class="fa-solid fa-file-arrow-down"></i></button>
+                        </div>
+                    </div>
+                `;
+            });
+            content.innerHTML = html;
+        }
+
+        // --- PDF GENERATION ENGINE ---
+        
+        // 1. Single Invoice (Standard)
+        window.downloadSinglePDF = (docId) => {
+            const order = loadedHistoryOrders.find(o => o.id === docId);
+            if(!order) return;
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Header
+            doc.setFillColor(30, 27, 75); doc.rect(0, 0, 210, 40, "F");
+            doc.setTextColor(255, 255, 255); doc.setFontSize(22); doc.setFont("helvetica", "bold");
+            doc.text("ORDER INVOICE", 105, 18, { align: "center" });
+            
+            // Info
+            doc.setTextColor(0, 0, 0); doc.setFontSize(10);
+            doc.setFont("helvetica", "bold"); doc.text("BILL TO:", 14, 55);
+            doc.setFont("helvetica", "normal"); doc.text(order.customer.name, 14, 62); doc.text(`Code: ${order.customer.code}`, 14, 67);
+            
+            doc.setFont("helvetica", "bold"); doc.text("DETAILS:", 140, 55);
+            doc.setFont("helvetica", "normal"); doc.text(`Date: ${order.date}`, 140, 62); doc.text(`Rep: ${order.rep}`, 140, 67);
+
+            const tableBody = order.items.map(item => {
+                if(item.code === 'MSG') return [ 'MSG', item.desc, '-', '-', '-' ];
+                return [ item.code, item.desc, item.qty, item.price.toFixed(2), item.total.toFixed(2) ];
+            });
+
+            doc.autoTable({
+                startY: 85,
+                head: [['Code', 'Description', 'Qty', 'Rate', 'Amount']],
+                body: tableBody,
+                theme: 'striped',
+                headStyles: { fillColor: [14, 165, 233] }
+            });
+
+            const finalY = doc.lastAutoTable.finalY + 10;
+            doc.setFont("helvetica", "bold"); doc.setFontSize(14);
+            doc.text(`TOTAL: ${order.grandTotal.toFixed(2)}`, 195, finalY, { align: "right" });
+            doc.save(`Invoice_${order.customer.name}.pdf`);
+        };
+
+        // 2. DETAILED REPORT (ALL ORDERS + ITEMS)
+        window.downloadDetailedReport = () => {
+            if(filteredHistoryOrders.length === 0) { alert("No orders to export."); return; }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const repFilterName = document.getElementById('historyRepFilter').value;
+            const titleText = repFilterName === 'ALL' ? "DETAILED SALES REPORT (ALL)" : `SALES REPORT: ${repFilterName}`;
+
+            // Report Header
+            doc.setFillColor(3, 7, 18); // Dark Deep Blue
+            doc.rect(0, 0, 210, 30, "F");
+            doc.setTextColor(251, 191, 36); // Gold Text
+            doc.setFontSize(16); doc.setFont("helvetica", "bold");
+            doc.text(titleText, 14, 18);
+            
+            doc.setTextColor(255,255,255); doc.setFontSize(9); doc.setFont("helvetica", "normal");
+            doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 25);
+
+            let yPos = 40;
+            let grandTotalSum = 0;
+
+            filteredHistoryOrders.forEach((order, index) => {
+                // Check page break
+                if (yPos > 250) { doc.addPage(); yPos = 20; }
+
+                // Order Header Bar
+                doc.setFillColor(240, 240, 245);
+                doc.rect(14, yPos, 182, 10, "F");
+                
+                doc.setFontSize(10); doc.setTextColor(0,0,0); doc.setFont("helvetica", "bold");
+                
+                // LEFT: Date and Customer
+                doc.text(`${order.date} | Customer: ${order.customer.name}`, 16, yPos + 6.5);
+                
+                // RIGHT: Rep Name
+                doc.text(`Rep: ${order.rep}`, 194, yPos + 6.5, { align: "right" });
+                
+                yPos += 12;
+
+                // Items Table for this order
+                const tableBody = order.items.map(item => {
+                    if(item.code === 'MSG') return [ 'MSG', item.desc, '', '', '' ];
+                    return [ item.code, item.desc, item.qty, item.price.toFixed(2), item.total.toFixed(2) ];
+                });
+
+                doc.autoTable({
+                    startY: yPos,
+                    head: [['Code', 'Description', 'Qty', 'Rate', 'Amount']],
+                    body: tableBody,
+                    theme: 'plain',
+                    headStyles: { fillColor: [255, 255, 255], textColor: [100,100,100], fontStyle:'bold', fontSize: 8 },
+                    bodyStyles: { fontSize: 8, textColor: [50,50,50] },
+                    
+                    // --- MANUALLY FORCE HEADER ALIGNMENT ---
+                    didParseCell: function(data) {
+                        if (data.section === 'head') {
+                            // Column indices: 2=Qty, 3=Rate, 4=Amount
+                            if (data.column.index === 2 || data.column.index === 3 || data.column.index === 4) {
+                                data.cell.styles.halign = 'right';
+                            }
+                        }
+                    },
+
+                    columnStyles: {
+                        0: { cellWidth: 25 }, // Enforce width to keep code roughly one line
+                        2: { halign: 'right' }, // Right aligned Data
+                        3: { halign: 'right' }, // Right aligned Data
+                        4: { halign: 'right' }  // Right aligned Data
+                    },
+                    margin: { left: 14, right: 14 }
+                });
+
+                // Order Total
+                yPos = doc.lastAutoTable.finalY + 2;
+                doc.setFontSize(9); doc.setFont("helvetica", "bold"); doc.setTextColor(0,0,0);
+                doc.text(`Order Total: ${order.grandTotal.toFixed(2)}`, 196, yPos + 4, { align: "right" });
+                
+                // Line Separator
+                doc.setDrawColor(200, 200, 200);
+                doc.line(14, yPos + 6, 196, yPos + 6);
+                
+                yPos += 15;
+                grandTotalSum += order.grandTotal;
+            });
+
+            // Grand Total Footer
+            if (yPos > 270) { doc.addPage(); yPos = 20; }
+            doc.setFillColor(30, 27, 75);
+            doc.rect(120, yPos, 76, 15, "F");
+            doc.setTextColor(255, 255, 255); doc.setFontSize(12);
+            doc.text(`GRAND TOTAL: ${grandTotalSum.toFixed(2)}`, 190, yPos + 10, { align: "right" });
+
+            doc.save(`Sales_Report_Detailed_${new Date().toISOString().split('T')[0]}.pdf`);
+        };
+
+
         // --- DELETE ORDER ---
         window.deleteOrder = async (docId) => {
-            if(!confirm("Are you sure you want to delete this order permanently?")) return;
-            
+            if(!confirm("Delete this order?")) return;
             const card = document.getElementById(`card-${docId}`);
             if(card) card.style.opacity = '0.5';
-
             try {
                 await deleteDoc(doc(db, "orders", docId));
+                loadedHistoryOrders = loadedHistoryOrders.filter(o => o.id !== docId);
+                filteredHistoryOrders = filteredHistoryOrders.filter(o => o.id !== docId);
                 if(card) card.remove();
-                if(document.querySelectorAll('.history-card').length === 0) {
-                    document.getElementById('historyContent').innerHTML = '<div style="text-align:center; padding:20px; color:#94a3b8;">No history available.</div>';
-                }
-            } catch (e) {
-                alert("Failed to delete: " + e.message);
-                if(card) card.style.opacity = '1';
-            }
+                if(filteredHistoryOrders.length === 0) renderHistoryHTML();
+            } catch (e) { alert("Failed to delete."); if(card) card.style.opacity = '1'; }
         };
 
         // --- MODIFY ORDER ---
         window.modifyOrder = (docId) => {
             const order = loadedHistoryOrders.find(o => o.id === docId);
             if(!order) return;
-
             closeModal('historyModal');
 
             document.getElementById('customerInput').value = order.customer.name;
@@ -1032,7 +1253,11 @@
             document.getElementById('custMobile').value = order.customer.mobile;
             
             const repSel = document.getElementById('repSelect');
-            if(repSel) repSel.value = order.rep;
+            if(repSel) {
+                repSel.value = order.rep;
+                // Also save this as the last rep used since we are modifying
+                localStorage.setItem('lastRep', order.rep);
+            }
 
             document.getElementById('itemsContainer').innerHTML = '';
 
@@ -1040,19 +1265,15 @@
                 if(item.code === 'MSG') {
                     addItemRow();
                     const lastRow = document.querySelector('#itemsContainer').lastElementChild;
-                    const input = lastRow.querySelector('.i-code');
-                    transformToMsgBox(input);
+                    transformToMsgBox(lastRow.querySelector('.i-code'));
                     const ta = lastRow.querySelector('textarea');
                     if(ta) ta.value = item.desc;
-
                 } else {
                     addItemRow();
                     const lastRow = document.querySelector('#itemsContainer').lastElementChild;
                     const inputs = lastRow.querySelectorAll('input');
-                    inputs[0].value = item.code;
-                    inputs[1].value = item.desc;
-                    inputs[2].value = item.qty;
-                    inputs[3].value = item.price;
+                    inputs[0].value = item.code; inputs[1].value = item.desc;
+                    inputs[2].value = item.qty; inputs[3].value = item.price;
                     lastRow.querySelector('.i-total').innerText = item.total.toFixed(2);
                 }
             });
@@ -1068,19 +1289,10 @@
                     <div style="flex:1; color: var(--accent-purple); font-weight:bold;">
                         <i class="fa-solid fa-comment-dots"></i> SPECIAL MESSAGE
                     </div>
-                    <div onclick="this.closest('.mobile-item-card').remove(); calcTotal();" class="btn-del">
-                        <i class="fa-solid fa-trash"></i>
-                    </div>
+                    <div onclick="this.closest('.mobile-item-card').remove(); calcTotal();" class="btn-del"><i class="fa-solid fa-trash"></i></div>
                 </div>
-                <div class="form-group">
-                    <label>Message Content</label>
-                    <textarea class="msg-content" placeholder="Type your message here..."></textarea>
-                </div>
-            `;
-            setTimeout(() => {
-                const ta = card.querySelector('textarea');
-                if(ta) ta.focus();
-            }, 100);
+                <div class="form-group"><label>Message Content</label><textarea class="msg-content" placeholder="Type your message here..."></textarea></div>`;
+            setTimeout(() => { const ta = card.querySelector('textarea'); if(ta) ta.focus(); }, 100);
             calcTotal();
         }
 
@@ -1098,7 +1310,6 @@
                 resetForm();
             }
 
-            // Perform an initial network check before trying to download
             await checkRealInternetConnection();
 
             if(isOnline) {
@@ -1130,7 +1341,6 @@
 
                     customersData = normalize(rawCust, 'customer');
                     itemsData = normalize(rawItm, 'item');
-                    
                     const repList = [];
                     rawReps.forEach(d => repList.push(d.data().name));
                     
@@ -1139,15 +1349,14 @@
                     localStorage.setItem('db_reps', JSON.stringify(repList));
 
                     populateReps(repList);
-
                     document.getElementById('loader').style.display = 'none';
                     if(!cachedCust) resetForm();
 
                 } catch (e) {
-                    console.error("Online fetch failed, relying on cache", e);
+                    console.error("Online fetch failed", e);
                     if(!cachedCust) {
-                        showAlert("Error loading data (Offline and no cache): " + e.message);
                         document.getElementById('loader').style.display = 'none';
+                        showAlert("Error loading data. Please reload.");
                     }
                 }
             } else if (!cachedCust) {
@@ -1163,6 +1372,15 @@
                 const opt = document.createElement('option');
                 opt.value = opt.text = r;
                 repSel.appendChild(opt);
+            });
+            
+            // Re-select if saved exists (needed after repopulation)
+            const savedRep = localStorage.getItem('lastRep');
+            if(savedRep) repSel.value = savedRep;
+            
+            // Listener to save instantly
+            repSel.addEventListener('change', (e) => {
+                localStorage.setItem('lastRep', e.target.value);
             });
         }
 
@@ -1428,7 +1646,6 @@
                 date: new Date().toISOString().split('T')[0]
             };
 
-            // POPULATE MODAL
             document.getElementById('psCustomer').innerHTML = `
                 <div class="ps-c-icon"><i class="fa-solid fa-user-tag"></i></div>
                 <div class="ps-c-info"><h4>${pendingOrderData.customer.name}</h4><p>${pendingOrderData.customer.code}</p></div>`;
@@ -1443,54 +1660,37 @@
             document.getElementById('summaryModal').classList.add('open');
         });
 
-        // --- UPDATED SUBMIT LOGIC (SMART OFFLINE/ONLINE) ---
+        // --- SUBMIT LOGIC ---
         document.getElementById('btnConfirmSubmit').addEventListener('click', async () => {
             const btn = document.getElementById('btnConfirmSubmit');
             const originalText = btn.innerHTML;
-            
             btn.disabled = true; 
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking...';
             
-            // 1. Force a network check first
             await checkRealInternetConnection();
-            
             closeModal('summaryModal');
 
             if (isOnline) {
-                // --- ONLINE: Try Firebase ---
                 try {
                     const docData = { ...pendingOrderData, timestamp: serverTimestamp() };
                     await addDoc(collection(db, "orders"), docData);
-                    
                     showToast("Order Uploaded Successfully!", "success");
-                    
                 } catch(err) {
-                    console.error("Firebase fail:", err);
-                    // Fallback to offline if upload fails
                     saveToOfflineQueue(pendingOrderData);
                     showToast("Connection weak. Saved to Pending.", "offline");
                 }
             } else {
-                // --- OFFLINE: Save Locally ---
                 saveToOfflineQueue(pendingOrderData);
                 showToast("You are Offline. Order Saved.", "offline");
             }
 
-            // 2. ALWAYS RESET FORM IMMEDIATELY
             resetForm();
             btn.disabled = false;
             btn.innerHTML = originalText;
         });
 
-        // --- OFFLINE QUEUE MANAGER (PERSISTENT) ---
-        function saveToOfflineQueue(order){
-            // Ensure timestamp is a number for JSON storage
-            order.timestamp = Date.now(); 
-            pushOfflineOrder(order);
-        }
-
+        // --- AUTO UPLOADER ---
         async function processOfflineQueue(){
-            // Only run if we are truly online
             if(!isOnline) return;
 
             let queue = getOfflineOrders();
@@ -1504,42 +1704,29 @@
                     const docData = { ...order, timestamp: serverTimestamp() };
                     await addDoc(collection(db,"orders"), docData);
                     syncCount++;
-                }catch(e){
-                    remaining.push(order);
-                }
+                }catch(e){ remaining.push(order); }
             }
 
             setOfflineOrders(remaining);
             updatePendingBadge();
             
-            if(syncCount > 0) {
-                 showToast(`Synced ${syncCount} pending orders!`, "success");
-            }
+            if(syncCount > 0) showToast(`Synced ${syncCount} pending orders!`, "success");
         }
 
         function updatePendingBadge(){
             const queue = getOfflineOrders();
             const badge = document.getElementById("pendingBadge");
-
             if(queue.length > 0){
-                badge.style.display="block";
-                badge.innerText = queue.length + " Sync Pending";
-            }else{
-                badge.style.display="none";
-            }
+                badge.style.display="block"; badge.innerText = queue.length + " Sync Pending";
+            }else{ badge.style.display="none"; }
         }
 
-        // --- INITIALIZATION ---
+        // --- INIT ---
         loadData();
         updatePendingBadge();
-        
-        // 1. Check immediately
         checkRealInternetConnection();
-        
-        // 2. Poll every 5 seconds
         setInterval(checkRealInternetConnection, 5000);
 
     </script>
 </body>
 </html>
-
